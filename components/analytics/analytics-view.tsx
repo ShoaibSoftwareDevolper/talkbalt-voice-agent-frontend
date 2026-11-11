@@ -19,9 +19,10 @@ import {
   formatEndReason,
   formatNumber,
   formatUsd,
-} from '@/lib/admin-api';
+} from '@/lib/api';
 import { SEGMENT, TOP_RADIUS } from '@/lib/chart-marks';
-import { useAdminResource } from '@/lib/use-admin-resource';
+import { WaveLoader } from '@/components/motion/wave-loader';
+import { useApiResource } from '@/lib/use-api-resource';
 import { cn } from '@/lib/utils';
 
 const RANGES = [7, 30] as const;
@@ -51,10 +52,10 @@ function shortDate(iso: string) {
 
 function Panel({ title, note, children, className }: { title: string; note?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cn('flex flex-col gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-4', className)}>
+    <section className={cn('flex flex-col gap-2 rounded-xl border border-border bg-card p-4', className)}>
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-semibold text-zinc-300">{title}</h2>
-        {note && <span className="text-right text-[11px] text-zinc-500">{note}</span>}
+        <h2 className="text-sm font-semibold text-foreground/80">{title}</h2>
+        {note && <span className="text-right text-[11px] text-muted-foreground">{note}</span>}
       </div>
       {children}
     </section>
@@ -62,7 +63,7 @@ function Panel({ title, note, children, className }: { title: string; note?: str
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="flex h-40 items-center justify-center text-center text-sm text-zinc-500">{children}</p>;
+  return <p className="flex h-40 items-center justify-center text-center text-sm text-muted-foreground">{children}</p>;
 }
 
 function StageChart({ days, stage }: { days: Analytics['days']; stage: (typeof STAGES)[number] }) {
@@ -93,17 +94,17 @@ function StageChart({ days, stage }: { days: Analytics['days']; stage: (typeof S
 }
 
 function BreakdownBars({ rows, format = (k) => k }: { rows: Breakdown; format?: (key: string) => string }) {
-  if (rows.length === 0) return <p className="text-sm text-zinc-500">No calls</p>;
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No calls</p>;
   const max = Math.max(...rows.map((r) => r.calls));
   return (
     <ul className="flex flex-col gap-2">
       {rows.map((r) => (
         <li key={r.key} className="flex flex-col gap-1">
           <div className="flex justify-between text-xs">
-            <span className="truncate text-zinc-300">{format(r.key)}</span>
-            <span className="font-mono text-zinc-400">{r.calls}</span>
+            <span className="truncate text-foreground/80">{format(r.key)}</span>
+            <span className="font-mono text-muted-foreground">{r.calls}</span>
           </div>
-          <div className="h-1.5 rounded-full bg-white/5">
+          <div className="h-1.5 rounded-full bg-muted">
             <div className="h-1.5 rounded-full" style={{ width: `${(r.calls / max) * 100}%`, background: 'var(--series-1)' }} />
           </div>
         </li>
@@ -120,27 +121,27 @@ function Meter({ m }: { m: UsageMeter }) {
   return (
     <li className="flex flex-col gap-1">
       <div className="flex justify-between gap-3 text-xs">
-        <span className="text-zinc-300">{m.label}</span>
-        <span className="font-mono text-zinc-400">
+        <span className="text-foreground/80">{m.label}</span>
+        <span className="font-mono text-muted-foreground">
           {fmt(m.used)} / {m.limit == null ? 'limit not set' : fmt(m.limit)}
           {pct != null && ` (${pct.toFixed(0)}%)`}
         </span>
       </div>
-      <div className="h-1.5 rounded-full bg-white/5">
+      <div className="h-1.5 rounded-full bg-muted">
         {pct != null && <div className="h-1.5 rounded-full" style={{ width: `${Math.max(pct, 1)}%`, background: color }} />}
       </div>
-      <span className="text-[11px] text-zinc-500">{m.note}</span>
+      <span className="text-[11px] text-muted-foreground">{m.note}</span>
     </li>
   );
 }
 
-export function AnalyticsView({ token }: { token: string }) {
+export function AnalyticsView() {
   const [range, setRange] = useState<(typeof RANGES)[number]>(7);
   const to = new Date();
   const from = new Date(to.getTime() - (range - 1) * 86_400_000);
   const iso = (d: Date) => d.toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
-  const analytics = useAdminResource<Analytics>(`/api/analytics?from=${iso(from)}&to=${iso(to)}`, token);
-  const usage = useAdminResource<Usage>('/api/usage', token);
+  const analytics = useApiResource<Analytics>(`/api/analytics?from=${iso(from)}&to=${iso(to)}`);
+  const usage = useApiResource<Usage>('/api/usage');
 
   const a = analytics?.value;
   const days = a?.days ?? [];
@@ -155,8 +156,8 @@ export function AnalyticsView({ token }: { token: string }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-zinc-100">Analytics</h1>
-        <div className="flex items-center gap-1 rounded-full border border-white/10 p-0.5" role="group" aria-label="Date range">
+        <h1 className="text-xl font-semibold text-foreground">Analytics</h1>
+        <div className="flex items-center gap-1 rounded-full border border-border p-0.5" role="group" aria-label="Date range">
           {RANGES.map((r) => (
             <button
               key={r}
@@ -165,7 +166,7 @@ export function AnalyticsView({ token }: { token: string }) {
               aria-pressed={range === r}
               className={cn(
                 'rounded-full px-3 py-1 font-mono text-xs',
-                range === r ? 'bg-white/10 text-zinc-100' : 'text-zinc-400 hover:text-zinc-200',
+                range === r ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground',
               )}
             >
               {r} days
@@ -174,12 +175,12 @@ export function AnalyticsView({ token }: { token: string }) {
         </div>
       </div>
 
-      {!analytics && <p className="text-sm text-zinc-500">Loading</p>}
-      {analytics?.error && <p className="text-sm text-red-400">{analytics.error}</p>}
+      {!analytics && <WaveLoader label="Loading analytics" />}
+      {analytics?.error && <p className="text-sm text-destructive">{analytics.error}</p>}
 
       {a && (
         <>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-muted-foreground">
             {totalCalls} calls from {shortDate(a.from)} to {shortDate(a.to)} ({a.timezone}). Costs are estimates from config/pricing.toml.
           </p>
 
@@ -259,23 +260,20 @@ export function AnalyticsView({ token }: { token: string }) {
             </Panel>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className={cn('grid gap-4', usage?.value ? 'md:grid-cols-3' : 'md:grid-cols-2')}>
             <Panel title="Web vs phone">
               <BreakdownBars rows={a.call_types} />
             </Panel>
             <Panel title="Models">
               <BreakdownBars rows={a.models} />
             </Panel>
-            <Panel title="Free tier usage" note={usage?.value?.month}>
-              {usage?.value ? (
-                <>
-                  <ul className="flex flex-col gap-3">{usage.value.meters.map((m) => <Meter key={m.key} m={m} />)}</ul>
-                  <p className="text-[11px] text-zinc-500">{usage.value.source}</p>
-                </>
-              ) : (
-                <p className="text-sm text-zinc-500">{usage?.error ?? 'Loading'}</p>
-              )}
-            </Panel>
+            {/* Platform-wide free tiers: only Talkbalt's own admins get this (403 for businesses). */}
+            {usage?.value && (
+              <Panel title="Free tier usage" note={usage.value.month}>
+                <ul className="flex flex-col gap-3">{usage.value.meters.map((m) => <Meter key={m.key} m={m} />)}</ul>
+                <p className="text-[11px] text-muted-foreground">{usage.value.source}</p>
+              </Panel>
+            )}
           </div>
         </>
       )}

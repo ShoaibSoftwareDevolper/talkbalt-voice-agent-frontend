@@ -1,13 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { MediaDeviceFailure, RoomEvent } from 'livekit-client';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { Phone } from 'lucide-react';
+import { MediaDeviceFailure, RoomEvent, type TokenSourceFixed } from 'livekit-client';
 import { type AgentState, AgentEvent, useAgent, useSession } from '@livekit/components-react';
 import { AgentSessionProvider } from '@/components/agents-ui/agent-session-provider';
 import { CallScreen } from '@/components/talkbalt/call-screen';
 import { Button } from '@/components/ui/button';
-import { API_URL, tokenSource } from '@/lib/token-source';
 import { cn } from '@/lib/utils';
 
 const AGENT_CONNECT_TIMEOUT_MS = 15_000;
@@ -41,7 +40,16 @@ async function checkMicrophone(): Promise<string | null> {
   }
 }
 
-export function TalkbaltApp() {
+type TalkbaltAppProps = {
+  /** Where the call's token comes from: the dashboard test call or a business's public link. */
+  tokenSource: TokenSourceFixed;
+  title: ReactNode;
+  description: ReactNode;
+  startLabel?: string;
+};
+
+/** A browser call with a business's receptionist: start card, then the live call screen. */
+export function TalkbaltApp({ tokenSource, title, description, startLabel = 'Start call' }: TalkbaltAppProps) {
   const session = useSession(tokenSource, { agentConnectTimeoutMilliseconds: AGENT_CONNECT_TIMEOUT_MS });
   const agent = useAgent(session);
 
@@ -129,14 +137,15 @@ export function TalkbaltApp() {
       console.error('Call failed to start:', error);
       inCallRef.current = false;
       setInCall(false);
-      // A token fetch failure (API down, CORS) vs. a failure connecting to LiveKit itself.
-      const tokenFailed =
-        error instanceof TypeError || (error instanceof Error && error.message.startsWith('Token request failed'));
+      // A network failure reaching Talkbalt vs. a reason the server gave (rate limit, calls off).
       setNotice({
         tone: 'error',
-        text: tokenFailed
-          ? `Could not reach the Talkbalt server at ${API_URL}. Make sure the API is running, then try again.`
-          : `Could not connect the call: ${error instanceof Error ? error.message : String(error)}`,
+        text:
+          error instanceof TypeError
+            ? 'Could not reach Talkbalt. Check your connection and try again.'
+            : error instanceof Error
+              ? error.message
+              : 'Could not connect the call. Try again.',
       });
       session.end().catch(() => {});
     } finally {
@@ -153,32 +162,38 @@ export function TalkbaltApp() {
           onUserEnd={() => finishCall({ tone: 'info', text: 'Call ended' })}
         />
       ) : (
-        <main className="flex flex-1 flex-col items-center justify-center gap-8 px-6 text-center">
-          <div className="space-y-3">
-            <h1 className="text-4xl font-semibold tracking-tight text-zinc-100 sm:text-5xl">Talkbalt</h1>
-            <p className="mx-auto max-w-sm text-zinc-400">
-              A friendly voice receptionist. Start a call and talk to it right from your browser.
+        <div className="flex flex-1 items-center justify-center py-6">
+          <div className="flex w-full max-w-md flex-col items-center gap-6 rounded-3xl border border-border bg-card px-8 py-10 text-center">
+            <span className="flex size-16 items-center justify-center rounded-2xl bg-brand-soft">
+              <span aria-hidden className="flex h-7 items-end gap-1">
+                {[12, 22, 28, 18, 10].map((h, i) => (
+                  <span key={i} className="w-1 rounded-full bg-brand" style={{ height: h }} />
+                ))}
+              </span>
+            </span>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{title}</h1>
+              <p className="text-muted-foreground">{description}</p>
+            </div>
+
+            <Button
+              size="lg"
+              onClick={startCall}
+              disabled={starting}
+              className="h-12 w-full rounded-full bg-brand text-base text-brand-foreground hover:bg-brand/90"
+            >
+              <Phone aria-hidden className="size-4" />
+              {starting ? 'Starting' : startLabel}
+            </Button>
+
+            <p
+              role="status"
+              className={cn('min-h-5 text-sm', notice?.tone === 'error' ? 'text-destructive' : 'text-muted-foreground')}
+            >
+              {notice?.text}
             </p>
           </div>
-
-          <Button size="lg" onClick={startCall} disabled={starting} className="h-11 rounded-full px-8">
-            {starting ? 'Starting' : 'Start call'}
-          </Button>
-
-          <p
-            role="status"
-            className={cn(
-              'min-h-5 max-w-md text-sm',
-              notice?.tone === 'error' ? 'text-red-400' : 'text-zinc-400',
-            )}
-          >
-            {notice?.text}
-          </p>
-
-          <Link href="/history" className="text-sm text-zinc-500 hover:text-zinc-300">
-            History
-          </Link>
-        </main>
+        </div>
       )}
     </AgentSessionProvider>
   );

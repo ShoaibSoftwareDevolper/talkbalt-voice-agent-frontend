@@ -28,19 +28,19 @@ export function CallScreen({ session, agent, onUserEnd }: CallScreenProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8 sm:px-6">
-      <header className="flex items-center justify-between">
-        <span className="text-sm font-semibold tracking-wide text-zinc-200">Talkbalt</span>
-        <span className="flex items-center gap-2 font-mono text-xs text-zinc-400">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-foreground">Live call</span>
+        <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 font-mono text-xs text-muted-foreground">
           <span
             className={
-              agent.isConnected ? 'size-1.5 rounded-full bg-emerald-400' : 'size-1.5 animate-pulse rounded-full bg-zinc-500'
+              agent.isConnected ? 'size-1.5 rounded-full bg-emerald-500' : 'size-1.5 animate-pulse rounded-full bg-muted-foreground'
             }
           />
           {STATUS_TEXT[agent.state] ?? agent.state}
         </span>
-      </header>
+      </div>
 
-      <div className="flex h-32 items-center justify-center">
+      <div className="flex h-32 items-center justify-center rounded-2xl border border-border bg-card text-brand">
         <AgentAudioVisualizerBar
           size="lg"
           barCount={5}
@@ -51,9 +51,9 @@ export function CallScreen({ session, agent, onUserEnd }: CallScreenProps) {
 
       <PipelineFlow session={session} agentState={agent.state} messages={messages} />
 
-      <div className="relative h-72 overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]">
+      <div className="relative h-72 overflow-hidden rounded-2xl border border-border bg-card">
         {messages.length === 0 ? (
-          <p className="flex h-full items-center justify-center text-sm text-zinc-500">
+          <p className="flex h-full items-center justify-center text-sm text-muted-foreground">
             The live transcript will appear here.
           </p>
         ) : (

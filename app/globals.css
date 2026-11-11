@@ -39,6 +39,9 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -48,78 +51,52 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Light theme: cool near-white canvas, white cards, ink text, one indigo brand color. */
 :root {
+  --background: oklch(0.985 0.003 255);
+  --foreground: oklch(0.22 0.02 264);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.22 0.02 264);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.22 0.02 264);
+  --primary: oklch(0.22 0.02 264);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.005 255);
+  --secondary-foreground: oklch(0.22 0.02 264);
+  --muted: oklch(0.96 0.005 255);
+  --muted-foreground: oklch(0.52 0.016 258);
+  --accent: oklch(0.96 0.005 255);
+  --accent-foreground: oklch(0.22 0.02 264);
+  --destructive: oklch(0.56 0.21 27);
+  --border: oklch(0.915 0.007 255);
+  --input: oklch(0.915 0.007 255);
+  --ring: oklch(0.55 0.2 275);
+  --brand: oklch(0.52 0.21 275);
+  --brand-foreground: oklch(0.99 0 0);
+  --brand-soft: oklch(0.95 0.035 275);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-foreground: oklch(0.22 0.02 264);
+  --sidebar-primary: oklch(0.22 0.02 264);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.005 255);
+  --sidebar-accent-foreground: oklch(0.22 0.02 264);
+  --sidebar-border: oklch(0.915 0.007 255);
+  --sidebar-ring: oklch(0.55 0.2 275);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  /* Keep room for the scrollbar on every page, so nothing shifts sideways when it appears. */
+  html {
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;
@@ -128,6 +105,15 @@
     @apply font-sans;
   }
 }
+/* Flat design: no shadows or glows anywhere. Emptying the shadow scales turns every shadow-* and
+   drop-shadow-* class (vendored components included) into a no-op; focus rings are unaffected. */
+@theme {
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+}
+
 /* One-shot highlight replayed on each STT transcript update (see pipeline-flow.tsx). */
 @theme {
   --animate-stt-pulse: stt-pulse 0.9s ease-out forwards;
@@ -141,9 +127,10 @@
     }
   }
 }
-/* Chart palette (validated with the dataviz skill's validator against the dark surface #0a0a0a:
-   lightness band, chroma, adjacent CVD and normal-vision separation, 3:1 contrast). Categorical
-   slots are assigned in this fixed order, never cycled; status colors are reserved for states. */
+/* Chart palette, validated with the dataviz skill's validator against the light surface: lightness
+   band, chroma, adjacent CVD and normal-vision separation pass; three slots are under 3:1 contrast,
+   so every chart keeps a legend and a table view. Categorical slots are assigned in this fixed
+   order, never cycled; status colors are reserved for states. */
 :root {
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -151,14 +138,104 @@
   --series-4: #eda100;
   --series-5: #e87ba4;
   --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
+  --status-warning: #d99400;
+  --status-serious: #e06a3c;
   --status-critical: #d03b3b;
 }
-.dark {
-  --series-1: #3987e5;
-  --series-2: #d95926;
-  --series-3: #199e70;
-  --series-4: #c98500;
-  --series-5: #d55181;
+
+/* ---- Motion: intro loader (components/motion/intro-loader.tsx) and page entrance ----
+   Only transform and opacity animate, so everything runs on the compositor. */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  /* No-JS fallback: fade out on its own; the loader removes this once GSAP takes over. */
+  animation: intro-fallback 0.4s ease 4.5s forwards;
+}
+.intro-surface {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--background);
+}
+.intro-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.intro-mark {
+  overflow: visible;
+}
+/* CSS wave until GSAP loads; GSAP then owns the bars' transforms (its own SVG origin math). */
+.intro:not(.intro-js) .intro-bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: intro-wave 0.84s ease-in-out infinite alternate;
+}
+.intro-word {
+  display: flex;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+.intro-letter-mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+}
+.intro-letter {
+  display: inline-block;
+}
+.intro-tagline {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+@keyframes intro-wave {
+  to {
+    transform: scaleY(0.3);
+  }
+}
+@keyframes intro-fallback {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Page content settles in on every page mount; held back while the intro covers the screen.
+   A slight scale-up (never above 1) instead of a slide: a slide pushes content past the bottom
+   edge for a moment, which flashes a scrollbar on pages that exactly fill the screen. */
+main {
+  animation: page-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-intro] main {
+  animation: none;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+/* Inline loader for data fetches (components/motion/wave-loader.tsx). */
+.wave-loader-bar {
+  transform-origin: center;
+  animation: intro-wave 0.6s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-bar,
+  .wave-loader-bar,
+  main {
+    animation: none;
+  }
 }

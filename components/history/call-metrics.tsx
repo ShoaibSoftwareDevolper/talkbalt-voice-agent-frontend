@@ -9,9 +9,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { type CallEventRow, type CallMetrics, formatNumber, formatUsd } from '@/lib/admin-api';
+import { type CallEventRow, type CallMetrics, formatNumber, formatUsd } from '@/lib/api';
 import { END_RADIUS, SEGMENT, TOP_RADIUS } from '@/lib/chart-marks';
-import { useAdminResource } from '@/lib/use-admin-resource';
+import { WaveLoader } from '@/components/motion/wave-loader';
+import { useApiResource } from '@/lib/use-api-resource';
 
 // Categorical slots in fixed order (see the palette tokens in globals.css).
 const waterfallConfig = {
@@ -43,26 +44,26 @@ const EVENT_STYLE: Record<string, { label: string; color: string }> = {
 
 export function Card({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-      <div className="font-mono text-[11px] tracking-wide text-zinc-500 uppercase">{label}</div>
-      <div className="mt-0.5 font-mono text-sm text-zinc-100">{value}</div>
-      {hint && <div className="mt-0.5 text-[11px] text-zinc-500">{hint}</div>}
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
+      <div className="font-mono text-[11px] tracking-wide text-muted-foreground uppercase">{label}</div>
+      <div className="mt-0.5 font-mono text-sm text-foreground">{value}</div>
+      {hint && <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>}
     </div>
   );
 }
 
 function TableView({ columns, rows }: { columns: string[]; rows: (string | number | null)[][] }) {
   return (
-    <details className="mt-2 text-xs text-zinc-400">
-      <summary className="cursor-pointer text-zinc-500 hover:text-zinc-300">View as table</summary>
+    <details className="mt-2 text-xs text-muted-foreground">
+      <summary className="cursor-pointer text-muted-foreground hover:text-foreground/80">View as table</summary>
       <div className="mt-2 overflow-x-auto">
         <table className="w-full font-mono">
-          <thead className="text-zinc-500">
+          <thead className="text-muted-foreground">
             <tr>{columns.map((c) => <th key={c} className="px-2 py-1 text-left font-normal">{c}</th>)}</tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={i} className="border-t border-white/5">
+              <tr key={i} className="border-t border-border/70">
                 {r.map((v, j) => <td key={j} className="px-2 py-1">{v ?? '--'}</td>)}
               </tr>
             ))}
@@ -77,8 +78,8 @@ function Section({ title, note, children }: { title: string; note?: string; chil
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-sm font-semibold text-zinc-300">{title}</h2>
-        {note && <span className="text-[11px] text-zinc-500">{note}</span>}
+        <h2 className="text-sm font-semibold text-foreground/80">{title}</h2>
+        {note && <span className="text-[11px] text-muted-foreground">{note}</span>}
       </div>
       {children}
     </section>
@@ -86,7 +87,7 @@ function Section({ title, note, children }: { title: string; note?: string; chil
 }
 
 function EventTimeline({ events, startedAt }: { events: CallEventRow[]; startedAt: string }) {
-  if (events.length === 0) return <p className="text-sm text-zinc-500">No events in this call.</p>;
+  if (events.length === 0) return <p className="text-sm text-muted-foreground">No events in this call.</p>;
   const start = new Date(startedAt).getTime();
   return (
     <ol className="flex flex-col gap-1.5">
@@ -95,10 +96,10 @@ function EventTimeline({ events, startedAt }: { events: CallEventRow[]; startedA
         const offset = Math.max(0, (new Date(e.timestamp).getTime() - start) / 1000);
         return (
           <li key={i} className="flex items-baseline gap-3 text-sm">
-            <span className="w-16 shrink-0 text-right font-mono text-xs text-zinc-500">+{offset.toFixed(1)}s</span>
+            <span className="w-16 shrink-0 text-right font-mono text-xs text-muted-foreground">+{offset.toFixed(1)}s</span>
             <span aria-hidden className="size-2 shrink-0 translate-y-[-1px] rounded-full" style={{ background: style.color }} />
-            <span className="text-zinc-200">{style.label}</span>
-            {e.detail && <span className="truncate text-xs text-zinc-500">{e.detail}</span>}
+            <span className="text-foreground">{style.label}</span>
+            {e.detail && <span className="truncate text-xs text-muted-foreground">{e.detail}</span>}
           </li>
         );
       })}
@@ -106,14 +107,14 @@ function EventTimeline({ events, startedAt }: { events: CallEventRow[]; startedA
   );
 }
 
-export function CallMetricsSection({ callId, startedAt, token }: { callId: string; startedAt: string; token: string }) {
-  const loaded = useAdminResource<CallMetrics>(`/api/calls/${callId}/metrics`, token);
-  if (!loaded) return <p className="text-sm text-zinc-500">Loading metrics</p>;
-  if (loaded.error || !loaded.value) return <p className="text-sm text-red-400">{loaded.error}</p>;
+export function CallMetricsSection({ callId, startedAt }: { callId: string; startedAt: string }) {
+  const loaded = useApiResource<CallMetrics>(`/api/calls/${callId}/metrics`);
+  if (!loaded) return <WaveLoader label="Loading metrics" />;
+  if (loaded.error || !loaded.value) return <p className="text-sm text-destructive">{loaded.error}</p>;
   const m = loaded.value;
   if (!m.has_metrics) {
     return (
-      <p className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-3 text-sm text-zinc-500">
+      <p className="rounded-lg border border-border bg-card px-3 py-3 text-sm text-muted-foreground">
         Detailed metrics are not available for this call. They are recorded for calls made after metrics capture was added.
       </p>
     );
@@ -175,7 +176,7 @@ export function CallMetricsSection({ callId, startedAt, token }: { callId: strin
 
       <Section title="Turn waterfall" note="time from the caller stopping to the agent's first audio">
         {waterfall.length === 0 ? (
-          <p className="text-sm text-zinc-500">No agent turns.</p>
+          <p className="text-sm text-muted-foreground">No agent turns.</p>
         ) : (
           <>
             <ChartContainer config={waterfallConfig} className="w-full" style={{ height: 40 + waterfall.length * 30 }}>
@@ -201,7 +202,7 @@ export function CallMetricsSection({ callId, startedAt, token }: { callId: strin
 
       <Section title="Tokens per turn" note="reasoning is part of Groq's output tokens; shown separately">
         {tokenRows.length === 0 ? (
-          <p className="text-sm text-zinc-500">No LLM requests.</p>
+          <p className="text-sm text-muted-foreground">No LLM requests.</p>
         ) : (
           <>
             <ChartContainer config={tokensConfig} className="h-56 w-full">
@@ -218,7 +219,7 @@ export function CallMetricsSection({ callId, startedAt, token }: { callId: strin
               </BarChart>
             </ChartContainer>
             {tokenRows.some((r) => r.noUsage) && (
-              <p className="text-[11px] text-zinc-500">
+              <p className="text-[11px] text-muted-foreground">
                 Some requests have no token counts: they were cut short (truncation or interruption) before the provider reported usage.
               </p>
             )}

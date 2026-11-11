@@ -72,27 +72,27 @@ function Stage({ label, detail, active, metric, extra, pulseKey }: StageProps) {
         className={cn(
           'relative w-full overflow-hidden rounded-lg border px-2 py-3 text-center transition-colors duration-150',
           active
-            ? 'border-sky-400/70 bg-sky-400/15 text-sky-100 shadow-[0_0_24px_-6px] shadow-sky-400/60'
-            : 'border-white/10 bg-white/[0.03] text-zinc-400',
+            ? 'border-brand bg-brand-soft text-brand'
+            : 'border-border bg-card text-muted-foreground',
         )}
       >
         {pulseKey && (
           // Re-mounts on every transcript update, replaying a one-shot highlight.
-          <span key={pulseKey} aria-hidden className="animate-stt-pulse absolute inset-0 bg-sky-400/25" />
+          <span key={pulseKey} aria-hidden className="animate-stt-pulse absolute inset-0 bg-brand/20" />
         )}
         <div className="relative text-sm font-semibold tracking-wide">{label}</div>
-        <div className="relative mt-0.5 truncate text-[11px] text-zinc-500">{detail}</div>
+        <div className="relative mt-0.5 truncate text-[11px] text-muted-foreground">{detail}</div>
       </div>
-      <div className="h-12 text-center font-mono text-[11px] leading-4 text-zinc-500">
+      <div className="h-12 text-center font-mono text-[11px] leading-4 text-muted-foreground">
         {metric && (
           <>
             <div>{metric.label}</div>
-            <div className={cn(metric.value ? 'text-zinc-200' : 'text-zinc-600')}>
+            <div className={cn(metric.value ? 'text-foreground' : 'text-muted-foreground/60')}>
               {metric.value ?? '--'}
             </div>
           </>
         )}
-        {extra && <div className="text-zinc-400">{extra}</div>}
+        {extra && <div className="text-muted-foreground">{extra}</div>}
       </div>
     </div>
   );
@@ -163,16 +163,16 @@ export function PipelineFlow({ session, agentState, messages }: PipelineFlowProp
       <div className="flex items-start gap-1">
         {stages.map((stage, i) => (
           <Fragment key={stage.label}>
-            {i > 0 && <ChevronRight aria-hidden className="mt-4 size-4 shrink-0 text-zinc-600" />}
+            {i > 0 && <ChevronRight aria-hidden className="mt-4 size-4 shrink-0 text-muted-foreground/60" />}
             <Stage {...stage} />
           </Fragment>
         ))}
       </div>
-      <div className="mt-2 flex justify-between font-mono text-[11px] text-zinc-500">
+      <div className="mt-2 flex justify-between font-mono text-[11px] text-muted-foreground">
         <span>{waiting ? 'Waiting for you to speak' : ' '}</span>
         <span>
           response time{' '}
-          <span className={agent?.e2e_ms != null ? 'text-zinc-200' : 'text-zinc-600'}>
+          <span className={agent?.e2e_ms != null ? 'text-foreground' : 'text-muted-foreground/60'}>
             {formatMs(agent?.e2e_ms) ?? '--'}
           </span>
         </span>

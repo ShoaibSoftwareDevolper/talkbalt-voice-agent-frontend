@@ -1,6 +1,6 @@
 # Talkbalt web
 
-Browser frontend for Talkbalt: start a voice call with the agent and watch the voice pipeline live.
+Talkbalt's web app: the public landing page, signup and login, and each business's dashboard (bookings, calls, analytics, services, opening hours, profile, and a test call with its own receptionist).
 
 Built with Next.js, `livekit-client`, `@livekit/components-react` and [Agents UI](https://docs.livekit.io/frontends/agents-ui/) components (installed into `components/agents-ui` with the shadcn CLI).
 
@@ -13,21 +13,24 @@ cp .env.example .env.local
 
 | Variable | Description |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | URL of the Talkbalt FastAPI server, default `http://localhost:8001`. Inlined into the browser bundle at build time. |
+| `TALKBALT_API_URL` | Server only. URL of the Talkbalt FastAPI server, default `http://localhost:8001`. |
 
 ## Run
 
-The backend API and the agent (dev mode) must be running too; see `backend-web/README.md`.
+The platform API (`../platform-api`, port 8001) and the voice agent (`../backend-web`) must be running too; see their READMEs.
 
 ```bash
-npm run dev
+npm run dev -- -p 3001
 ```
 
-Open http://localhost:3000. The API only allows the origins in its `CORS_ORIGINS`. If Next.js starts on another port because 3000 is taken, add that origin there.
+Open http://localhost:3001. The API only allows the origins in its `CORS_ORIGINS`. Add the origin there if you use another port.
 
 ## How it works
 
-- `lib/token-source.ts`: fetches a fresh token from `POST /api/token` for every call (`TokenSource.literal`, no caching). The API puts each call in a new room with the agent dispatch built into the token.
+- **Accounts:** `/signup` and `/login` (`components/auth/auth-form.tsx`). The API sets an httpOnly session cookie. Every API request goes through `app/api/backend/[...path]`, a same-origin proxy that forwards cookies both ways, so the cookie stays first-party and the API URL never reaches the browser. `proxy.ts` sends signed-out visitors of `/app` to the login page.
+- **Dashboard:** `/app` (`components/app-shell.tsx` sidebar, pages in `components/dashboard`): overview with a setup checklist, bookings agenda, calls, analytics, services, opening hours, business profile, test call.
+- **Public link and widget:** `/b/<slug>` shows the business's info and a "Start your call" button (`components/public/business-page.tsx`); the call goes only to that business's receptionist. `public/widget.js` is a 4 KB script a business pastes on its website: a corner button in a Shadow DOM that opens `/embed/<slug>` in an iframe allowed to use the microphone; closing the panel removes the iframe and ends the call. The dashboard's Share & embed page gives the link and the snippet.
+- `lib/token-source.ts`: fetches a fresh token for every call: `POST /api/org/test-call` for the dashboard test call, `POST /api/public/<slug>/call` for the link and widget (`TokenSource.literal`, no caching). The agent dispatch metadata names the business, so the agent answers with its name, services and hours, and books into its calendar.
 - `components/talkbalt/talkbalt-app.tsx`: `useSession` plus `AgentSessionProvider`. Handles the call lifecycle: mic permission check before connecting, a 15 second agent join timeout (`agentConnectTimeoutMilliseconds`), and "Call ended" when the agent hangs up (its `end_call` tool deletes the room).
 - `components/talkbalt/call-screen.tsx`: audio visualizer, pipeline flow, live transcript (`useSessionMessages`), and the control bar (mic toggle, end call).
 - `components/talkbalt/pipeline-flow.tsx`: Mic, VAD, STT, LLM, TTS and Speaker stages, driven by real signals:

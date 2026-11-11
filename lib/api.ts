@@ -1,51 +1,37 @@
-import { useSyncExternalStore } from 'react';
-import { API_URL } from '@/lib/token-source';
-
-const TOKEN_KEY = 'talkbalt.adminToken';
-const listeners = new Set<() => void>();
-
-function readToken(): string | null {
-  try {
-    return sessionStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null; // storage blocked (private mode, strict settings)
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
   }
 }
 
-/** Stores the admin token for this browser tab only (sessionStorage), or clears it with null. */
-export function setAdminToken(token: string | null) {
-  try {
-    if (token) sessionStorage.setItem(TOKEN_KEY, token);
-    else sessionStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // ignore: the token then only lives until the next reload
-  }
-  listeners.forEach((listener) => listener());
-}
-
-function subscribe(listener: () => void) {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
-}
-
-/** The admin token: `undefined` while not yet known (server render), `null` when not set. */
-export function useAdminToken(): string | null | undefined {
-  return useSyncExternalStore(subscribe, readToken, () => undefined);
-}
-
-export class UnauthorizedError extends Error {}
-
-export async function adminFetch<T>(path: string, token: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, { headers: { 'X-Admin-Token': token } });
-  if (res.status === 401) throw new UnauthorizedError('The admin token was rejected.');
+/**
+ * Calls the Talkbalt API (`/api/...`) through the Next.js proxy in app/api/backend, which carries
+ * the session cookie. Errors carry the HTTP status; a 401 (session ended) is handled by the
+ * dashboard shell, which sends the browser back to the login page.
+ */
+export async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
+  const res = await fetch(path.replace(/^\/api\//, '/api/backend/'), {
+    method: init?.method ?? 'GET',
+    headers: init?.body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+  });
   if (!res.ok) {
     const detail = await res
       .json()
-      .then((body: { detail?: string }) => body.detail)
+      .then((body: { detail?: unknown }) =>
+        typeof body.detail === 'string'
+          ? body.detail
+          : Array.isArray(body.detail)
+            ? body.detail.map((d: { msg?: string }) => d.msg?.replace(/^Value error, /, '')).join('. ')
+            : undefined,
+      )
       .catch(() => undefined);
-    throw new Error(detail ?? `Request failed with status ${res.status}`);
+    throw new ApiError(detail ?? `Request failed with status ${res.status}`, res.status);
   }
-  return (await res.json()) as T;
+  return (res.status === 204 ? undefined : await res.json()) as T;
 }
 
 export type TurnMetrics = {
@@ -195,4 +181,75 @@ export function formatUsd(value: number | null | undefined) {
 
 export function formatNumber(value: number | null | undefined) {
   return value == null ? '--' : value.toLocaleString();
+}
+
+export type ServiceRow = {
+  id: string;
+  kind: 'service' | 'product';
+  name: string;
+  description: string | null;
+  duration_min: number;
+  price_cents: number | null;
+  currency: string;
+  active: boolean;
+};
+
+export type HoursWindow = { weekday: number; opens: string; closes: string };
+
+export type BookingRow = {
+  id: string;
+  service_name: string;
+  starts_at: string;
+  ends_at: string;
+  status: 'confirmed' | 'cancelled';
+  source: string;
+  customer_name: string;
+  customer_phone: string;
+  call_id: string | null;
+};
+
+export type Faq = { q: string; a: string };
+
+export type LocationType = 'in_person' | 'remote' | 'both';
+
+export type Profile = {
+  business_name: string;
+  greeting: string | null;
+  about: string | null;
+  timezone: string;
+  location_type: LocationType;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  contact_email: string | null;
+  website: string | null;
+  faqs: Faq[];
+  public_calls_enabled: boolean;
+  slug?: string | null;
+};
+
+export type PublicItem = { name: string; description: string | null; duration_min: number | null; price_cents: number | null; currency: string };
+
+export type PublicBusiness = {
+  slug: string;
+  name: string;
+  about: string | null;
+  location_type: LocationType;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  website: string | null;
+  contact_email: string | null;
+  timezone: string;
+  services: PublicItem[];
+  products: PublicItem[];
+  hours: HoursWindow[];
+  faqs: Faq[];
+  calls_enabled: boolean;
+};
+
+export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+export function formatPrice(cents: number | null, currency: string) {
+  return cents == null ? '--' : `${(cents / 100).toLocaleString()} ${currency}`;
 }
