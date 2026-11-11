@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { MessageCircle, Phone } from 'lucide-react';
 import { Notice, PageHeader, Panel } from '@/components/dashboard/ui';
 import { WaveLoader } from '@/components/motion/wave-loader';
 import { type BookingRow, api } from '@/lib/api';
@@ -16,7 +17,14 @@ function timeLabel(iso: string) {
   return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
-/** Upcoming bookings grouped by day, like a calendar agenda. */
+/** wa.me wants the number as digits only, with the country code and no "+". */
+function whatsappLink(b: BookingRow) {
+  const text = `Hi ${b.customer_name}, about your ${b.service_name} appointment on ${dayLabel(b.starts_at)} at ${timeLabel(b.starts_at)}.`;
+  return `https://wa.me/${b.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
+}
+
+/** Upcoming bookings grouped by day, like a calendar agenda. Each one has the caller's number with
+ *  WhatsApp and phone buttons, so the business can follow up itself. */
 export function BookingsView({ compact = false }: { compact?: boolean }) {
   const [reload, setReload] = useState(0);
   const bookings = useApiResource<BookingRow[]>('/api/org/bookings', reload);
@@ -57,7 +65,7 @@ export function BookingsView({ compact = false }: { compact?: boolean }) {
                   <div className="truncate text-sm font-medium text-foreground">
                     {b.customer_name} <span className="font-normal text-muted-foreground">· {b.service_name}</span>
                   </div>
-                  <div className="font-mono text-xs text-muted-foreground">{b.customer_phone}</div>
+                  <div className="font-mono text-xs text-muted-foreground select-all">{b.customer_phone}</div>
                 </div>
                 <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{b.source}</span>
                 {b.status === 'cancelled' ? (
@@ -65,9 +73,29 @@ export function BookingsView({ compact = false }: { compact?: boolean }) {
                 ) : (
                   <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">Confirmed</span>
                 )}
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={whatsappLink(b)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`WhatsApp ${b.customer_name}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+                  >
+                    <MessageCircle className="size-3.5" aria-hidden />
+                    WhatsApp
+                  </a>
+                  <a
+                    href={`tel:${b.customer_phone}`}
+                    aria-label={`Call ${b.customer_name}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/70"
+                  >
+                    <Phone className="size-3.5" aria-hidden />
+                    Call
+                  </a>
+                </div>
                 {b.call_id && (
                   <Link href={`/app/calls/${b.call_id}`} className="text-xs font-medium text-brand hover:underline">
-                    Call
+                    Call log
                   </Link>
                 )}
                 {!compact && b.status !== 'cancelled' && (

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Talkbalt favicon: the brand's four voice bars as blue glass tubes (like the hero ribbon) on a
+       transparent background, moving like a live voice. Browsers that animate SVG favicons (Firefox) show the motion;
+       others, and the PNG/ICO copies for Google Search (favicon.ico, icon1.png, apple-icon.png),
+       show the resting bars. -->
+  <style>
+    .bar {
+      transform-box: fill-box;
+      transform-origin: 50% 100%;
+      animation: talk 1.2s ease-in-out infinite;
+    }
+    .b2 { animation-delay: 0.15s; }
+    .b3 { animation-delay: 0.3s; }
+    .b4 { animation-delay: 0.45s; }
+    @keyframes talk {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.6); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .bar { animation: none; }
+    }
+  </style>
+  <defs>
+    <!-- Across each tube: deep blue edges, bright core, a white specular stripe left of centre. -->
+    <linearGradient id="glass" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#0a3f86" />
+      <stop offset="0.18" stop-color="#1a7fd6" />
+      <stop offset="0.36" stop-color="#7cc8ff" />
+      <stop offset="0.44" stop-color="#ffffff" />
+      <stop offset="0.54" stop-color="#9ad8ff" />
+      <stop offset="0.78" stop-color="#2b9bf0" />
+      <stop offset="1" stop-color="#0b4f9c" />
+    </linearGradient>
+    <!-- Along each tube: light pooling at the top, falling off towards the base. -->
+    <linearGradient id="depth" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.35" />
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="1" stop-color="#03142e" stop-opacity="0.3" />
+    </linearGradient>
+  </defs>
+
+  <!-- Each bar: glass body, depth shading, a thin rim, and a glint near the top. -->
+  <g class="bar b1">
+    <rect x="7.5" y="33" width="10" height="22" rx="5" fill="url(#glass)" />
+    <rect x="7.5" y="33" width="10" height="22" rx="5" fill="url(#depth)" />
+    <rect x="7.9" y="33.4" width="9.2" height="21.2" rx="4.6" fill="none" stroke="#0b4f9c" stroke-opacity="0.35" stroke-width="0.8" />
+    <rect x="10" y="36" width="2.4" height="6" rx="1.2" fill="#ffffff" fill-opacity="0.9" />
+  </g>
+  <g class="bar b2">
+    <rect x="20.5" y="21" width="10" height="34" rx="5" fill="url(#glass)" />
+    <rect x="20.5" y="21" width="10" height="34" rx="5" fill="url(#depth)" />
+    <rect x="20.9" y="21.4" width="9.2" height="33.2" rx="4.6" fill="none" stroke="#0b4f9c" stroke-opacity="0.35" stroke-width="0.8" />
+    <rect x="23" y="24" width="2.4" height="9" rx="1.2" fill="#ffffff" fill-opacity="0.9" />
+  </g>
+  <g class="bar b3">
+    <rect x="33.5" y="9" width="10" height="46" rx="5" fill="url(#glass)" />
+    <rect x="33.5" y="9" width="10" height="46" rx="5" fill="url(#depth)" />
+    <rect x="33.9" y="9.4" width="9.2" height="45.2" rx="4.6" fill="none" stroke="#0b4f9c" stroke-opacity="0.35" stroke-width="0.8" />
+    <rect x="36" y="12" width="2.4" height="11" rx="1.2" fill="#ffffff" fill-opacity="0.9" />
+  </g>
+  <g class="bar b4">
+    <rect x="46.5" y="27" width="10" height="28" rx="5" fill="url(#glass)" />
+    <rect x="46.5" y="27" width="10" height="28" rx="5" fill="url(#depth)" />
+    <rect x="46.9" y="27.4" width="9.2" height="27.2" rx="4.6" fill="none" stroke="#0b4f9c" stroke-opacity="0.35" stroke-width="0.8" />
+    <rect x="49" y="30" width="2.4" height="7" rx="1.2" fill="#ffffff" fill-opacity="0.9" />
+  </g>
+</svg>

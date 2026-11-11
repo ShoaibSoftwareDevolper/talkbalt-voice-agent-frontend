@@ -3,6 +3,8 @@
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Field, Notice, PageHeader, Panel, inputClass } from '@/components/dashboard/ui';
+import { LANGUAGES, VOICES, VoicePicker, scriptLanguage } from '@/components/dashboard/voice-picker';
+import { TriangleAlert } from 'lucide-react';
 import { WaveLoader } from '@/components/motion/wave-loader';
 import { Button } from '@/components/ui/button';
 import { type Faq, type LocationType, type Profile, api } from '@/lib/api';
@@ -75,9 +77,27 @@ function ProfileEditor({ initial }: { initial: Profile }) {
   };
 
   const physical = p.location_type !== 'remote';
+  // A greeting in another language than the receptionist's isn't spoken (the receptionist greets in
+  // its own words instead), so say so next to the field; it doesn't block saving.
+  const language = p.language ?? 'en';
+  const greetingLanguage = scriptLanguage(p.greeting ?? '');
+  const greetingMismatch = greetingLanguage !== null && greetingLanguage !== language;
+  const languageName = (l: string) => LANGUAGES.find((x) => x.value === l)?.label ?? l;
+  // Examples in the receptionist's language, to show writing in it is fine (any language works).
+  const faqPlaceholder = {
+    en: { q: 'Is there parking?', a: 'Yes, free parking behind the shop.' },
+    ur: { q: 'کیا پارکنگ کی سہولت ہے؟', a: 'جی ہاں، دکان کے پیچھے مفت پارکنگ ہے۔' },
+    hi: { q: 'क्या पार्किंग है?', a: 'हाँ, दुकान के पीछे मुफ़्त पार्किंग है।' },
+  }[language];
+  const male = VOICES.find((v) => v.key === (p.voice ?? 'kiara'))?.gender === 'Male';
+  const greetingPlaceholder = {
+    en: `Hello, thank you for calling ${p.business_name}. How can I help?`,
+    ur: `السلام علیکم، ${p.business_name} میں خوش آمدید۔ میں آپ کی کیا مدد کر ${male ? 'سکتا' : 'سکتی'} ہوں؟`,
+    hi: `नमस्ते, ${p.business_name} में आपका स्वागत है। मैं आपकी क्या मदद कर ${male ? 'सकता' : 'सकती'} हूँ?`,
+  }[language];
   return (
     <form onSubmit={save} className="flex flex-col gap-4">
-      <Section title="Basics" hint="Callers hear the business name. The description helps the receptionist answer questions.">
+      <Section title="Basics" hint="Callers hear the business name. The description helps the receptionist answer questions. Write in English, Urdu or Hindi: the receptionist always speaks to callers in the language you choose below.">
         <Field label="Business name" htmlFor="business_name">
           <input {...text('business_name')} required maxLength={160} className={inputClass} />
         </Field>
@@ -88,12 +108,37 @@ function ProfileEditor({ initial }: { initial: Profile }) {
             ))}
           </select>
         </Field>
-        <Field label="About your business" htmlFor="about" className="sm:col-span-2" hint="What you do, who you serve, anything that makes you different.">
+        <Field label="About your business" htmlFor="about" className="sm:col-span-2" hint="What you do, who you serve, anything that makes you different. Don’t list services here: the receptionist only offers what is on the Services & products page.">
           <textarea {...text('about')} maxLength={2000} rows={4} className={cn(inputClass, 'h-auto py-2 leading-relaxed')} />
         </Field>
-        <Field label="Greeting" htmlFor="greeting" className="sm:col-span-2" hint="Spoken word for word when a call starts. Empty: the receptionist greets in its own words.">
-          <input {...text('greeting')} maxLength={300} placeholder={`Hello, thank you for calling ${p.business_name}. How can I help?`} className={inputClass} />
+        <Field label="Greeting" htmlFor="greeting" className="sm:col-span-2" hint="Spoken word for word when a call starts. Write it in the receptionist’s language (below); otherwise, or when empty, the receptionist greets in its own words.">
+          <input
+            {...text('greeting')}
+            maxLength={300}
+            placeholder={greetingPlaceholder}
+            aria-describedby={greetingMismatch ? 'greeting-warning' : undefined}
+            className={cn(inputClass, greetingMismatch && 'border-amber-400 focus-visible:border-amber-500')}
+          />
+          {greetingMismatch && (
+            <p id="greeting-warning" role="status" className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+              <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
+              <span>
+                This greeting is in {languageName(greetingLanguage)}, but your receptionist speaks {languageName(language)}, so it
+                won’t be used: callers will hear a greeting in {languageName(language)} instead. Write it in{' '}
+                {languageName(language)}, or change the language under Receptionist voice.
+              </span>
+            </p>
+          )}
         </Field>
+      </Section>
+
+      <Section title="Receptionist voice" hint="The language your receptionist speaks on calls, and how it sounds. Play a sample before you choose.">
+        <VoicePicker
+          language={p.language ?? 'en'}
+          voice={p.voice ?? 'kiara'}
+          onLanguage={(v) => set('language', v)}
+          onVoice={(v) => set('voice', v)}
+        />
       </Section>
 
       <Section title="Location" hint="Where you serve customers. The receptionist tells callers where to come, or that you work remotely.">
@@ -139,13 +184,13 @@ function ProfileEditor({ initial }: { initial: Profile }) {
         </Field>
       </Section>
 
-      <Section title="Common questions" hint="Answers the receptionist gives in its own words: parking, payment methods, cancellations, anything callers often ask.">
+      <Section title="Common questions" hint="Answers the receptionist gives in its own words: parking, payment methods, cancellations, anything callers often ask. Write them in any language; callers hear them in the receptionist’s language.">
         <div className="flex flex-col gap-3 sm:col-span-2">
           {p.faqs.length === 0 && <p className="text-sm text-muted-foreground">No questions yet.</p>}
           {p.faqs.map((f, i) => (
             <div key={i} className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[1fr_1.4fr_auto]">
-              <input aria-label={`Question ${i + 1}`} value={f.q} maxLength={300} placeholder="Is there parking?" onChange={(e) => setFaq(i, { q: e.target.value })} className={inputClass} />
-              <input aria-label={`Answer ${i + 1}`} value={f.a} maxLength={1000} placeholder="Yes, free parking behind the shop." onChange={(e) => setFaq(i, { a: e.target.value })} className={inputClass} />
+              <input aria-label={`Question ${i + 1}`} value={f.q} maxLength={300} placeholder={faqPlaceholder.q} onChange={(e) => setFaq(i, { q: e.target.value })} className={inputClass} />
+              <input aria-label={`Answer ${i + 1}`} value={f.a} maxLength={1000} placeholder={faqPlaceholder.a} onChange={(e) => setFaq(i, { a: e.target.value })} className={inputClass} />
               <button type="button" aria-label={`Remove question ${i + 1}`} onClick={() => set('faqs', p.faqs.filter((_, j) => j !== i))} className="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-destructive">
                 <Trash2 className="size-4" />
               </button>

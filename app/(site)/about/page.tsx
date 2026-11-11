@@ -20,7 +20,7 @@ export default function AboutPage() {
     <>
       <SiteMotion />
       <PageHero title={<>We answer the call, <span className="font-semibold">so you can do the work</span></>}>
-        <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-lg">
           Talkbalt is an AI voice receptionist for small businesses. Visitors press “Start your call” on your website or booking
           link, ask what they need to, and book a time. You see every booking in your dashboard.
         </p>

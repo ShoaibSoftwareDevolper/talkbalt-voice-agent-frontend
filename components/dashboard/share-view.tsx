@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
-import { Check, Copy, ExternalLink } from 'lucide-react';
+import { Check, Copy, Eye } from 'lucide-react';
 import { Notice, PageHeader, Panel } from '@/components/dashboard/ui';
 import { WaveLoader } from '@/components/motion/wave-loader';
-import { type Profile, api } from '@/lib/api';
+import { WidgetDesigner } from '@/components/dashboard/widget-designer';
+import { type Profile, type WidgetSettings, api } from '@/lib/api';
 import { useApiResource } from '@/lib/use-api-resource';
 import { cn } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ function CopyBox({ id, value, multiline = false }: { id: string; value: string; 
 export function ShareView() {
   const [reload, setReload] = useState(0);
   const loaded = useApiResource<Profile>('/api/org/profile', reload);
+  const widget = useApiResource<WidgetSettings>('/api/org/widget');
   const [error, setError] = useState<string | null>(null);
   // The links point at wherever this dashboard is served from; unknown during server rendering.
   const origin = useSyncExternalStore(noSubscribe, () => window.location.origin, () => '');
@@ -103,8 +105,13 @@ export function ShareView() {
                 <p className="text-sm text-muted-foreground">Share it anywhere: WhatsApp, Instagram bio, Google profile, email signature.</p>
               </div>
               {link && (
-                <a href={link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-sm font-medium text-brand hover:underline">
-                  Open <ExternalLink className="size-3.5" aria-hidden />
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  <Eye className="size-4" aria-hidden /> Preview in browser
                 </a>
               )}
             </div>
@@ -120,10 +127,12 @@ export function ShareView() {
             </div>
             {snippet && <CopyBox id="share-snippet" value={snippet} multiline />}
             <p className="text-xs text-muted-foreground">
-              Optional: add <code className="font-mono">data-label=&quot;Talk to us&quot;</code> to change the button text, or{' '}
-              <code className="font-mono">data-color=&quot;#0f766e&quot;</code> for your brand color.
+              Paste it once: changes you make in Widget design below show on your website automatically.
             </p>
           </Panel>
+
+          {p.slug && widget?.value && <WidgetDesigner slug={p.slug} initial={widget.value} />}
+          {widget?.error && <Notice tone="error">{widget.error}</Notice>}
         </>
       )}
     </>

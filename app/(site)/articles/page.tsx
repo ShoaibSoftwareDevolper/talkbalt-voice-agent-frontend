@@ -16,7 +16,7 @@ export default function ArticlesPage() {
     <>
       <SiteMotion />
       <PageHero title={<>Notes on <span className="font-semibold">never missing a booking</span></>}>
-        <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">Guides for getting set up, and how the receptionist works.</p>
+        <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-lg">Guides for getting set up, and how the receptionist works.</p>
       </PageHero>
 
       <section data-reveal className="flex w-full flex-col gap-4 px-2 sm:px-6 lg:px-12">

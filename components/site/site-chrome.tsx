@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ribbon from "@/app/Transparent Sky-Blue Glass Ribbon.png";
 import type { CSSProperties, ReactNode } from "react";
+import { MobileMenu } from "./mobile-menu";
 
 /** Start time for a CSS entrance (.enter-* in globals.css), in ms after the first paint. */
 export const at = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
@@ -27,24 +28,24 @@ function BrandIcon() {
   );
 }
 
-/** Logo, pill navigation and the Start button. On phones the pill wraps onto its own row. */
+/** Logo, pill navigation, Log in and Start. On phones: logo, Start and a menu holding the rest. */
 export function SiteHeader() {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-3">
+    <header className="relative z-40 flex items-center justify-between gap-3">
       <Link
         href="/"
         aria-label="Talkbalt home"
         style={at(150)}
-        className="enter-pop flex size-11 items-center justify-center rounded-full bg-foreground"
+        className="enter-pop flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground sm:size-11"
       >
         <BrandIcon />
       </Link>
-      <nav style={at(250)} className="enter-down order-last flex w-full justify-between gap-1 overflow-x-auto rounded-full bg-muted p-1.5 text-sm md:order-none md:w-auto md:justify-start">
+      <nav style={at(250)} className="enter-down hidden items-center gap-1 rounded-full bg-muted p-1.5 text-sm md:flex">
         {NAV.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="shrink-0 rounded-full px-3 py-2 whitespace-nowrap text-foreground/80 hover:bg-background hover:text-foreground sm:px-5"
+            className="rounded-full px-5 py-2 whitespace-nowrap text-foreground/80 hover:bg-background hover:text-foreground"
           >
             {item.label}
           </Link>
@@ -53,16 +54,17 @@ export function SiteHeader() {
       <div style={at(350)} className="enter-down flex items-center gap-2">
         <Link
           href="/login"
-          className="rounded-full px-4 py-3 text-sm text-foreground/80 hover:text-foreground"
+          className="hidden rounded-full px-4 py-3 text-sm text-foreground/80 hover:text-foreground md:inline-flex"
         >
           Log in
         </Link>
         <Link
           href="/signup"
-          className="rounded-full bg-foreground px-7 py-3 text-sm font-medium text-background hover:bg-foreground/85"
+          className="rounded-full bg-foreground px-5 py-2.5 text-xs font-medium text-background hover:bg-foreground/85 sm:px-7 sm:py-3 sm:text-sm"
         >
           Start
         </Link>
+        <MobileMenu items={NAV} />
       </div>
     </header>
   );
@@ -77,10 +79,10 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <div className="enter-card flex w-full flex-col gap-12 rounded-[2rem] bg-background px-5 py-5 sm:gap-20 sm:px-10 sm:py-8 lg:px-14">
+    <div className="enter-card flex w-full flex-col gap-10 rounded-[1.75rem] bg-background px-4 py-4 sm:gap-20 sm:rounded-[2rem] sm:px-10 sm:py-8 lg:px-14">
       <SiteHeader />
       <div className="flex max-w-4xl flex-col gap-5 pb-6 sm:pb-12">
-        <h1 className="line-mask text-4xl leading-[1.08] tracking-tight text-balance text-foreground sm:text-6xl">
+        <h1 className="line-mask text-3xl leading-[1.1] tracking-tight text-balance text-foreground sm:text-6xl">
           <span style={at(300)} className="enter-line">
             {title}
           </span>

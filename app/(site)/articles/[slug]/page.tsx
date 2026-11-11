@@ -25,7 +25,7 @@ export default async function ArticlePage({ params }: PageProps<'/articles/[slug
       <SiteMotion />
       <div aria-hidden data-progress className="fixed inset-x-0 top-0 z-40 h-1 origin-left scale-x-0 bg-foreground" />
       <PageHero title={article.title}>
-        <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">{article.excerpt}</p>
+        <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-lg">{article.excerpt}</p>
         <p className="text-sm text-muted-foreground">
           {formatDate(article.date)} · {article.minutes} min read
         </p>

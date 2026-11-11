@@ -212,6 +212,23 @@ export type Faq = { q: string; a: string };
 
 export type LocationType = 'in_person' | 'remote' | 'both';
 
+export type WidgetSettings = { label: string; color: string; position: 'left' | 'right'; logo_url: string | null };
+
+export type LogoSignature = {
+  cloud_name: string;
+  api_key: string;
+  timestamp: number;
+  signature: string;
+  public_id: string;
+  asset_folder: string;
+  overwrite: string;
+  invalidate: string;
+  allowed_formats: string;
+};
+
+export type AgentLanguage = 'en' | 'ur' | 'hi';
+export type VoiceKey = 'kiara' | 'janvi' | 'nora' | 'devansh' | 'krishna' | 'daniel';
+
 export type Profile = {
   business_name: string;
   greeting: string | null;
@@ -225,6 +242,8 @@ export type Profile = {
   website: string | null;
   faqs: Faq[];
   public_calls_enabled: boolean;
+  language: AgentLanguage;
+  voice: VoiceKey;
   slug?: string | null;
 };
 
@@ -246,6 +265,7 @@ export type PublicBusiness = {
   hours: HoursWindow[];
   faqs: Faq[];
   calls_enabled: boolean;
+  logo_url: string | null;
 };
 
 export const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];

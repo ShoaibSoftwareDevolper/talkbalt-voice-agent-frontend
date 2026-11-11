@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Globe, Mail, MapPin, Wifi } from 'lucide-react';
 import { WaveLoader } from '@/components/motion/wave-loader';
+import { OpenInBrowser, useInAppBrowser } from '@/components/public/open-in-browser';
 import { TalkbaltApp } from '@/components/talkbalt/talkbalt-app';
 import { type PublicBusiness, type PublicItem, WEEKDAYS, formatPrice } from '@/lib/api';
 import { publicCallTokenSource } from '@/lib/token-source';
@@ -41,6 +42,10 @@ function Details({ b }: { b: PublicBusiness }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="space-y-2">
+        {b.logo_url && (
+          // eslint-disable-next-line @next/next/no-img-element -- the business's own logo, from Cloudinary
+          <img src={b.logo_url} alt={`${b.name} logo`} className="size-16 rounded-2xl border border-border bg-white object-cover" />
+        )}
         <h1 className="text-3xl font-semibold tracking-tight text-balance text-foreground">{b.name}</h1>
         {b.about && <p className="max-w-prose leading-relaxed text-muted-foreground">{b.about}</p>}
       </div>
@@ -85,6 +90,7 @@ function Details({ b }: { b: PublicBusiness }) {
 export function BusinessPage({ slug, embedded = false }: { slug: string; embedded?: boolean }) {
   const loaded = useApiResource<PublicBusiness>(`/api/public/${encodeURIComponent(slug)}`);
   const tokenSource = useMemo(() => publicCallTokenSource(slug), [slug]);
+  const inApp = useInAppBrowser();
   const b = loaded?.value;
 
   if (!loaded) return <WaveLoader label="Loading" className="justify-center" />;
@@ -92,24 +98,29 @@ export function BusinessPage({ slug, embedded = false }: { slug: string; embedde
     return <p className="py-16 text-center text-muted-foreground">{loaded.error ?? 'This business link does not exist.'}</p>;
   }
 
-  const call = b.calls_enabled ? (
+  // Inside Instagram, Facebook and similar apps the microphone is blocked: send the visitor to their
+  // real browser first.
+  const call = !b.calls_enabled ? null : inApp ? (
+    <OpenInBrowser inApp={inApp} businessName={b.name} />
+  ) : (
     <TalkbaltApp
       tokenSource={tokenSource}
       title={embedded ? b.name : 'Talk to us now'}
       description={`Our AI receptionist answers questions about ${b.name} and can book your appointment.`}
       startLabel="Start your call"
     />
-  ) : (
+  );
+  const body = call ?? (
     <p className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
       {b.name} isn’t taking calls online right now.
     </p>
   );
 
-  if (embedded) return <div className="flex flex-1 flex-col px-4">{call}</div>;
+  if (embedded) return <div className="flex flex-1 flex-col px-4">{body}</div>;
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.2fr_1fr] lg:py-16">
       <Details b={b} />
-      <div className="lg:sticky lg:top-8 lg:self-start">{call}</div>
+      <div className="lg:sticky lg:top-8 lg:self-start">{body}</div>
     </div>
   );
 }
