@@ -21,8 +21,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      // Holds the page-in animation until the intro loader (landing, login, dashboard) finishes.
-      data-intro=""
       className={cn("h-full", "antialiased", geistMono.variable, "font-sans", geist.variable, inter.variable)}
     >
       {/* Browser extensions (e.g. ColorZilla's cz-shortcut-listen) add attributes to <body> before

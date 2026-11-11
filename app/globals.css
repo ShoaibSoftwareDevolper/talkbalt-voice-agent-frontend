@@ -143,81 +143,14 @@
   --status-critical: #d03b3b;
 }
 
-/* ---- Motion: intro loader (components/motion/intro-loader.tsx) and page entrance ----
-   Only transform and opacity animate, so everything runs on the compositor. */
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  /* No-JS fallback: fade out on its own; the loader removes this once GSAP takes over. */
-  animation: intro-fallback 0.4s ease 4.5s forwards;
-}
-.intro-surface {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: var(--background);
-}
-.intro-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-}
-.intro-mark {
-  overflow: visible;
-}
-/* CSS wave until GSAP loads; GSAP then owns the bars' transforms (its own SVG origin math). */
-.intro:not(.intro-js) .intro-bar {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: intro-wave 0.84s ease-in-out infinite alternate;
-}
-.intro-word {
-  display: flex;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--foreground);
-}
-.intro-letter-mask {
-  display: inline-block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-}
-.intro-letter {
-  display: inline-block;
-}
-.intro-tagline {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--muted-foreground);
-}
-@keyframes intro-wave {
-  to {
-    transform: scaleY(0.3);
-  }
-}
-@keyframes intro-fallback {
-  to {
-    opacity: 0;
-    visibility: hidden;
-  }
-}
+/* ---- Motion: page entrances ----
+   Pure CSS, so they start with the first paint (no waiting for JS), and only transform and opacity
+   animate, so everything runs on the compositor. */
 
-/* Page content settles in on every page mount; held back while the intro covers the screen.
-   A slight scale-up (never above 1) instead of a slide: a slide pushes content past the bottom
-   edge for a moment, which flashes a scrollbar on pages that exactly fill the screen. */
-main {
+/* App pages (dashboard, login): content settles in with a slight scale-up (never above 1, so it
+   never pushes past the screen edge and flashes a scrollbar). */
+main:not([data-entrance]) {
   animation: page-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-[data-intro] main {
-  animation: none;
 }
 @keyframes page-in {
   from {
@@ -226,16 +159,156 @@ main {
   }
 }
 
+/* Website (main[data-entrance]): pieces arrive in sequence; each sets its start with --d.
+   .enter-down: slides down into place (header).   .enter-up: rises and fades in.
+   .enter-pop: bumps in with a small overshoot.     .enter-card: a big surface that rises and settles.
+   .line-mask > .enter-line: text revealed from behind a mask, line by line.
+   .enter-zoom: an image settling from a slight zoom. */
+.enter-down,
+.enter-up,
+.enter-pop,
+.enter-card,
+.enter-line,
+.enter-zoom {
+  animation-duration: 0.9s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+  animation-delay: var(--d, 0ms);
+}
+.enter-down {
+  animation-name: enter-down;
+}
+.enter-up {
+  animation-name: enter-up;
+}
+.enter-pop {
+  animation-name: enter-pop;
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.enter-card {
+  animation-name: enter-card;
+  animation-duration: 1.1s;
+  animation-timing-function: cubic-bezier(0.3, 1.25, 0.5, 1);
+}
+.line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.enter-line {
+  display: block;
+  animation-name: enter-line;
+  animation-duration: 1s;
+}
+.enter-zoom {
+  animation-name: enter-zoom;
+  animation-duration: 1.6s;
+}
+@keyframes enter-down {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes enter-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes enter-card {
+  from {
+    opacity: 0;
+    transform: translateY(48px) scale(0.94);
+  }
+}
+@keyframes enter-line {
+  from {
+    transform: translateY(105%);
+  }
+}
+@keyframes enter-zoom {
+  from {
+    transform: scale(1.18);
+  }
+}
+
 /* Inline loader for data fetches (components/motion/wave-loader.tsx). */
 .wave-loader-bar {
   transform-origin: center;
-  animation: intro-wave 0.6s ease-in-out infinite alternate;
+  animation: wave-bar 0.6s ease-in-out infinite alternate;
+}
+@keyframes wave-bar {
+  to {
+    transform: scaleY(0.3);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro-bar,
   .wave-loader-bar,
-  main {
+  main,
+  .enter-down,
+  .enter-up,
+  .enter-pop,
+  .enter-card,
+  .enter-line,
+  .enter-zoom {
     animation: none;
   }
+}
+
+/* Parallax layers move every scroll frame: keep each on its own compositor layer. */
+[data-parallax] {
+  will-change: transform;
+}
+
+/* "How it works": a line of water that runs from step to step as you scroll (flat colours, no
+   gradient, glow or shadow). The wide-screen curve is SVG in app/(site)/page.tsx; these style the
+   phone line and the glass bulbs at each step. */
+.water {
+  background: #3aa0e8;
+  border-radius: 999px;
+}
+.glass-orb {
+  background: rgb(255 255 255 / 0.6);
+  border: 2px solid #b7cde0;
+  color: var(--muted-foreground);
+  transition: color 0.4s ease;
+}
+/* The water inside the bulb rises from the bottom when the pipe reaches it. */
+.glass-orb::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: #3aa0e8;
+  clip-path: inset(0 0 0 0 round 999px);
+  transform-origin: bottom;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* A glint on the glass. */
+.glass-orb::after {
+  content: '';
+  position: absolute;
+  top: 16%;
+  left: 22%;
+  width: 28%;
+  height: 16%;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.85);
+  transform: rotate(-35deg);
+}
+[data-pending] .glass-orb::before {
+  transform: scaleY(0);
+}
+[data-step]:not([data-pending]) .glass-orb {
+  color: #ffffff;
 }
