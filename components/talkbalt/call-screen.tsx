@@ -33,7 +33,7 @@ export function CallScreen({ session, agent, onUserEnd }: CallScreenProps) {
         <span className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 font-mono text-xs text-muted-foreground">
           <span
             className={
-              agent.isConnected ? 'size-1.5 rounded-full bg-emerald-500' : 'size-1.5 animate-pulse rounded-full bg-muted-foreground'
+              agent.isConnected ? 'size-1.5 rounded-full bg-foreground' : 'size-1.5 animate-pulse rounded-full bg-muted-foreground'
             }
           />
           {STATUS_TEXT[agent.state] ?? agent.state}

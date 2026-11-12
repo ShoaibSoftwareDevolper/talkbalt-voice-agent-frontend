@@ -117,10 +117,10 @@ function ProfileEditor({ initial }: { initial: Profile }) {
             maxLength={300}
             placeholder={greetingPlaceholder}
             aria-describedby={greetingMismatch ? 'greeting-warning' : undefined}
-            className={cn(inputClass, greetingMismatch && 'border-amber-400 focus-visible:border-amber-500')}
+            className={cn(inputClass, greetingMismatch && 'border-foreground focus-visible:border-foreground')}
           />
           {greetingMismatch && (
-            <p id="greeting-warning" role="status" className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+            <p id="greeting-warning" role="status" className="flex items-start gap-2 rounded-lg bg-muted px-3 py-2 text-xs leading-relaxed text-foreground">
               <TriangleAlert className="mt-px size-3.5 shrink-0" aria-hidden />
               <span>
                 This greeting is in {languageName(greetingLanguage)}, but your receptionist speaks {languageName(language)}, so it

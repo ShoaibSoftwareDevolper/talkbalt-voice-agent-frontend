@@ -1,15 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
-import ribbon from "@/app/Transparent Sky-Blue Glass Ribbon.png";
+import { Headset } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
+import { COPYRIGHT_YEAR } from "@/lib/site";
 import { MobileMenu } from "./mobile-menu";
 
 /** Start time for a CSS entrance (.enter-* in globals.css), in ms after the first paint. */
 export const at = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 
 const NAV = [
-  { href: "/#features", label: "Features" },
-  { href: "/#how", label: "How it works" },
   { href: "/about", label: "About" },
   { href: "/articles", label: "Articles" },
 ];
@@ -28,30 +26,28 @@ function BrandIcon() {
   );
 }
 
-/** Logo, pill navigation, Log in and Start. On phones: logo, Start and a menu holding the rest. */
+/** Logo on the left; About, Articles, Log in and Start on the right. On phones: logo, Start and a menu holding the rest. */
 export function SiteHeader() {
   return (
     <header className="relative z-40 flex items-center justify-between gap-3">
-      <Link
-        href="/"
-        aria-label="Talkbalt home"
-        style={at(150)}
-        className="enter-pop flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground sm:size-11"
-      >
-        <BrandIcon />
+      <Link href="/" aria-label="Talkbalt home" style={at(150)} className="enter-pop flex shrink-0 items-center gap-2.5">
+        <span className="flex size-9 items-center justify-center rounded-full bg-foreground sm:size-11">
+          <BrandIcon />
+        </span>
+        <span className="text-lg font-semibold tracking-tight text-foreground sm:text-xl">Talkbalt</span>
       </Link>
-      <nav style={at(250)} className="enter-down hidden items-center gap-1 rounded-full bg-muted p-1.5 text-sm md:flex">
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="rounded-full px-5 py-2 whitespace-nowrap text-foreground/80 hover:bg-background hover:text-foreground"
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-      <div style={at(350)} className="enter-down flex items-center gap-2">
+      <div style={at(250)} className="enter-down flex items-center gap-2">
+        <nav aria-label="Main" className="hidden items-center md:flex">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-full px-4 py-3 text-sm whitespace-nowrap text-foreground/80 hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
         <Link
           href="/login"
           className="hidden rounded-full px-4 py-3 text-sm text-foreground/80 hover:text-foreground md:inline-flex"
@@ -95,76 +91,61 @@ export function PageHero({
   );
 }
 
-/**
- * Giant rounded "TB" letters, drawn as thick round-capped strokes in a 1000 x 720 box. Used as a CSS
- * mask, so the photo underneath shows only through the letters (and still loads via next/image).
- */
-const LETTERS =
-  "M85 85H395M240 85V635" + // T
-  "M560 85V635M560 85H690A137.5 137.5 0 0 1 690 360H560M560 360H710A137.5 137.5 0 0 1 710 635H560"; // B
-const LETTER_MASK = `url("data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 720'><path d='${LETTERS}' fill='none' stroke='white' stroke-width='150' stroke-linecap='round' stroke-linejoin='round'/></svg>`,
-)}")`;
-
-const FOOTER_LINKS = [
+const LEGAL_LINKS = [
   { href: "/about", label: "About" },
   { href: "/articles", label: "Articles" },
-  { href: "/login", label: "Log in" },
-  { href: "/signup", label: "Sign up" },
+  { href: "/privacy", label: "Privacy Policy" },
 ];
 
+/**
+ * Closing statement, a call to action and a huge fading "Talkbalt" wordmark, then the legal row.
+ * The headline's tones (light, lighter, dark) guide the eye to the promise at the end.
+ */
 export function SiteFooter() {
   return (
-    <footer className="relative w-full overflow-hidden rounded-[2rem] bg-background p-5 sm:p-8 lg:p-10">
-      <div className="flex flex-col gap-8 md:flex-row md:items-center md:gap-0">
-        <div
-          aria-hidden
-          className="relative z-10 aspect-[1000/720] w-full max-w-md overflow-hidden bg-[#070a14] md:w-[min(64%,95svh)] md:max-w-none md:shrink-0"
-          style={{
-            maskImage: LETTER_MASK,
-            WebkitMaskImage: LETTER_MASK,
-            maskSize: "100% 100%",
-            WebkitMaskSize: "100% 100%",
-          }}
-        >
-          <div data-parallax="8" className="absolute inset-x-0 -inset-y-[10%]">
-            <Image
-              src={ribbon}
-              alt=""
-              fill
-              sizes="(min-width: 768px) 64vw, 448px"
-              className="object-cover object-[60%_50%]"
-            />
-          </div>
-        </div>
+    <footer className="flex w-full flex-col items-center overflow-hidden rounded-[2rem] bg-background px-5 pt-16 pb-6 sm:px-8 sm:pt-24 lg:px-10">
+      <h2
+        data-reveal
+        className="max-w-5xl text-center text-[clamp(1.9rem,5.2vw,4.25rem)] leading-[1.08] font-medium tracking-[-0.035em] text-balance"
+      >
+        <span className="text-foreground/35">Every call answered, in Urdu, Hindi or English, </span>
+        <span className="text-foreground/22">by a receptionist that never takes a break, </span>
+        <span className="text-foreground/22">and </span>
+        <span className="text-foreground">turned into a booking.</span>
+      </h2>
 
-        {/* Tucked behind the B like a poster, drifting at its own speed for depth; stacks below on phones. */}
-        <div data-parallax="-18" className="md:-ml-[5%]">
-          <div
-            data-reveal
-            className="flex flex-col gap-8 font-mono text-foreground"
-          >
-            <p className="text-5xl leading-[1.05] tracking-tight sm:text-6xl xl:text-7xl">
-              24/7
-              <br />
-              on call
-            </p>
-            <nav className="flex flex-col gap-1.5 text-base sm:text-lg md:pl-[clamp(3rem,6vw,6rem)]">
-              {FOOTER_LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="w-fit underline-offset-4 hover:underline"
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-            <p className="text-sm text-muted-foreground md:pl-[clamp(3rem,6vw,6rem)]">
-              Talkbalt, AI voice receptionist
-            </p>
-          </div>
-        </div>
+      <Link
+        data-reveal
+        href="/signup"
+        className="mt-10 flex items-center gap-3 rounded-full bg-foreground py-2 pr-6 pl-2 text-background transition-transform hover:scale-[1.03] sm:mt-12"
+      >
+        <span className="flex size-10 items-center justify-center rounded-full bg-background/12">
+          <Headset aria-hidden className="size-5" strokeWidth={1.75} />
+        </span>
+        <span className="flex flex-col leading-tight">
+          <span className="text-sm font-medium">Set up your receptionist</span>
+          <span className="text-xs text-background/55">Ready in about ten minutes</span>
+        </span>
+      </Link>
+
+      {/* Decorative wordmark: dark at the top, fading into the card at the bottom. */}
+      <p
+        aria-hidden
+        data-parallax="-6"
+        className="mt-20 w-full bg-gradient-to-b from-foreground/30 via-foreground/12 to-transparent bg-clip-text pb-[0.04em] text-center text-[clamp(4.5rem,23vw,24rem)] leading-[0.82] font-semibold tracking-[-0.06em] whitespace-nowrap text-transparent select-none sm:mt-28"
+      >
+        Talkbalt
+      </p>
+
+      <div className="mt-6 flex w-full flex-col-reverse items-center gap-3 text-xs sm:flex-row sm:justify-between sm:text-sm">
+        <p className="text-muted-foreground">&copy; {COPYRIGHT_YEAR} Talkbalt. All rights reserved.</p>
+        <nav aria-label="Footer" className="flex flex-wrap justify-center gap-x-5 gap-y-1">
+          {LEGAL_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className="text-foreground/80 hover:text-foreground">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </footer>
   );

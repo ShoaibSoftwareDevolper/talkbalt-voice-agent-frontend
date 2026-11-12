@@ -71,7 +71,7 @@ export function BookingsView({ compact = false }: { compact?: boolean }) {
                 {b.status === 'cancelled' ? (
                   <span className="text-xs text-muted-foreground">Cancelled</span>
                 ) : (
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">Confirmed</span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-foreground">Confirmed</span>
                 )}
                 <div className="flex items-center gap-1.5">
                   <a
@@ -79,7 +79,7 @@ export function BookingsView({ compact = false }: { compact?: boolean }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`WhatsApp ${b.customer_name}`}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                   >
                     <MessageCircle className="size-3.5" aria-hidden />
                     WhatsApp

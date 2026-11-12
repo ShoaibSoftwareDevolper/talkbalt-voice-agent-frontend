@@ -11,6 +11,7 @@ import {
 import { CallMetricsSection, Card } from '@/components/history/call-metrics';
 import { WaveLoader } from '@/components/motion/wave-loader';
 import { useApiResource } from '@/lib/use-api-resource';
+import { useMe } from '@/lib/use-me';
 import { cn } from '@/lib/utils';
 
 const MEDIA_ERRORS: Record<number, string> = {
@@ -79,7 +80,7 @@ function TurnMetricsLine({ entry }: { entry: TranscriptEntry }) {
   return <div className="font-mono text-[11px] text-muted-foreground">{parts.join(' · ')}</div>;
 }
 
-function Transcript({ entries }: { entries: TranscriptEntry[] }) {
+function Transcript({ entries, showMetrics }: { entries: TranscriptEntry[]; showMetrics: boolean }) {
   if (entries.length === 0) return <p className="text-sm text-muted-foreground">No transcript for this call.</p>;
   return (
     <ol className="flex flex-col gap-4">
@@ -90,7 +91,7 @@ function Transcript({ entries }: { entries: TranscriptEntry[] }) {
             <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
               <span>{isUser ? 'Caller' : 'Talkbalt'}</span>
               <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
-              {entry.interrupted && <span className="text-amber-600">interrupted</span>}
+              {entry.interrupted && <span className="text-muted-foreground">interrupted</span>}
             </div>
             <div
               className={cn(
@@ -100,7 +101,7 @@ function Transcript({ entries }: { entries: TranscriptEntry[] }) {
             >
               {entry.text}
             </div>
-            <TurnMetricsLine entry={entry} />
+            {showMetrics && <TurnMetricsLine entry={entry} />}
           </li>
         );
       })}
@@ -110,6 +111,8 @@ function Transcript({ entries }: { entries: TranscriptEntry[] }) {
 
 export function CallDetailView({ id }: { id: string }) {
   const call = useApiResource<CallDetail>(`/api/calls/${id}`);
+  // Latency, model, tokens and cost are for Talkbalt admins; owners see the call itself.
+  const isAdmin = Boolean(useMe()?.value?.is_admin);
 
   if (!call) return <WaveLoader label="Loading call" />;
   if (call.error || !call.value) return <p className="text-sm text-destructive">{call.error ?? 'Call not found'}</p>;
@@ -127,23 +130,27 @@ export function CallDetailView({ id }: { id: string }) {
         <Card label="Duration" value={formatDuration(c.duration_seconds)} />
         <Card label="End reason" value={formatEndReason(c.end_reason)} />
         <Card label="Turns" value={String(c.turn_count)} />
-        <Card label="Avg STT" value={formatMs(c.avg_stt_ms)} />
-        <Card label="Avg LLM first token" value={formatMs(c.avg_llm_ttft_ms)} />
-        <Card label="Avg TTS first audio" value={formatMs(c.avg_tts_ttfb_ms)} />
-        <Card label="Avg response" value={formatMs(c.avg_e2e_ms)} />
+        {isAdmin && (
+          <>
+            <Card label="Avg STT" value={formatMs(c.avg_stt_ms)} />
+            <Card label="Avg LLM first token" value={formatMs(c.avg_llm_ttft_ms)} />
+            <Card label="Avg TTS first audio" value={formatMs(c.avg_tts_ttfb_ms)} />
+            <Card label="Avg response" value={formatMs(c.avg_e2e_ms)} />
+          </>
+        )}
       </div>
-      <p className="font-mono text-xs text-muted-foreground">model {c.llm_model ?? '--'}</p>
+      {isAdmin && <p className="font-mono text-xs text-muted-foreground">model {c.llm_model ?? '--'}</p>}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-semibold text-foreground/80">Recording</h2>
         <Recording call={c} />
       </section>
 
-      <CallMetricsSection callId={c.id} startedAt={c.started_at} />
+      {isAdmin && <CallMetricsSection callId={c.id} startedAt={c.started_at} />}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-foreground/80">Transcript</h2>
-        <Transcript entries={c.transcript} />
+        <Transcript entries={c.transcript} showMetrics={isAdmin} />
       </section>
     </article>
   );

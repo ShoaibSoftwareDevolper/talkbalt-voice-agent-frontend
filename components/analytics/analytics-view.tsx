@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, XAxis, YAxis } from 'recharts';
 import {
   type ChartConfig,
@@ -142,6 +143,12 @@ export function AnalyticsView() {
   const iso = (d: Date) => d.toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
   const analytics = useApiResource<Analytics>(`/api/analytics?from=${iso(from)}&to=${iso(to)}`);
   const usage = useApiResource<Usage>('/api/usage');
+  // Costs, tokens and latency are for Talkbalt admins; a business owner who opens the URL goes home.
+  const router = useRouter();
+  const forbidden = analytics?.status === 403;
+  useEffect(() => {
+    if (forbidden) router.replace('/app');
+  }, [forbidden, router]);
 
   const a = analytics?.value;
   const days = a?.days ?? [];
@@ -176,7 +183,7 @@ export function AnalyticsView() {
       </div>
 
       {!analytics && <WaveLoader label="Loading analytics" />}
-      {analytics?.error && <p className="text-sm text-destructive">{analytics.error}</p>}
+      {analytics?.error && !forbidden && <p className="text-sm text-destructive">{analytics.error}</p>}
 
       {a && (
         <>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { type CallPage, formatDuration, formatEndReason, formatMs } from '@/lib/api';
 import { WaveLoader } from '@/components/motion/wave-loader';
 import { useApiResource } from '@/lib/use-api-resource';
+import { useMe } from '@/lib/use-me';
 
 const PAGE_SIZE = 20;
 
@@ -12,6 +13,8 @@ export function CallList() {
   const [offset, setOffset] = useState(0);
   const current = useApiResource<CallPage>(`/api/calls?limit=${PAGE_SIZE}&offset=${offset}`);
   const page = current?.value;
+  // Model and latency are Talkbalt's internals; business owners see when, how long and how it ended.
+  const isAdmin = Boolean(useMe()?.value?.is_admin);
 
   return (
     <section className="flex flex-col gap-4">
@@ -23,7 +26,7 @@ export function CallList() {
       {current?.error && <p className="text-sm text-destructive">{current.error}</p>}
       {!current && <WaveLoader label="Loading calls" />}
       {page && page.items.length === 0 && (
-        <p className="text-sm text-muted-foreground">No calls yet. Start a web call or dial the phone number.</p>
+        <p className="text-sm text-muted-foreground">No calls yet. Make a test call or share your link.</p>
       )}
 
       {page && page.items.length > 0 && (
@@ -35,8 +38,8 @@ export function CallList() {
                 <th className="px-4 py-3 font-normal">Type</th>
                 <th className="px-4 py-3 font-normal">Duration</th>
                 <th className="px-4 py-3 font-normal">End reason</th>
-                <th className="px-4 py-3 font-normal">Model</th>
-                <th className="px-4 py-3 font-normal">Avg response</th>
+                {isAdmin && <th className="px-4 py-3 font-normal">Model</th>}
+                {isAdmin && <th className="px-4 py-3 font-normal">Avg response</th>}
                 <th className="px-4 py-3 font-normal">Recording</th>
               </tr>
             </thead>
@@ -56,8 +59,8 @@ export function CallList() {
                   </td>
                   <td className="px-4 py-3 font-mono text-foreground/80">{formatDuration(call.duration_seconds)}</td>
                   <td className="px-4 py-3 text-foreground/80">{formatEndReason(call.end_reason)}</td>
-                  <td className="max-w-40 truncate px-4 py-3 font-mono text-xs text-muted-foreground">{call.llm_model ?? '--'}</td>
-                  <td className="px-4 py-3 font-mono text-foreground/80">{formatMs(call.avg_e2e_ms)}</td>
+                  {isAdmin && <td className="max-w-40 truncate px-4 py-3 font-mono text-xs text-muted-foreground">{call.llm_model ?? '--'}</td>}
+                  {isAdmin && <td className="px-4 py-3 font-mono text-foreground/80">{formatMs(call.avg_e2e_ms)}</td>}
                   <td className="px-4 py-3 text-foreground/80">{call.has_recording ? 'yes' : 'no'}</td>
                 </tr>
               ))}

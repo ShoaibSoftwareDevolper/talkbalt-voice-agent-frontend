@@ -36,7 +36,7 @@ export function Field({ label, hint, htmlFor, children, className }: {
 
 export function Notice({ tone, children }: { tone: 'error' | 'ok'; children: ReactNode }) {
   return (
-    <p role="status" className={cn('text-sm', tone === 'error' ? 'text-destructive' : 'text-emerald-700')}>
+    <p role="status" className={cn('text-sm', tone === 'error' ? 'text-destructive' : 'text-foreground')}>
       {children}
     </p>
   );

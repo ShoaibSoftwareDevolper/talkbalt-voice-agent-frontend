@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { DEMO_BUSINESS } from '@/lib/site';
 import { Globe, Mail, MapPin, Wifi } from 'lucide-react';
 import { WaveLoader } from '@/components/motion/wave-loader';
 import { OpenInBrowser, useInAppBrowser } from '@/components/public/open-in-browser';
@@ -87,6 +88,15 @@ function Details({ b }: { b: PublicBusiness }) {
  * A business's public page: its info and a "Start your call" button that connects the visitor
  * to that business's receptionist. `embedded` is the compact version inside the website widget.
  */
+
+/** What the call panel promises: the demo explains itself; only businesses with services offer booking. */
+function describe(b: { slug: string; name: string; services: unknown[] }) {
+  if (b.slug === DEMO_BUSINESS) return 'A demo call: hear how Talkbalt would answer your customers. Ask anything about Talkbalt.';
+  return b.services.length > 0
+    ? `Our AI receptionist answers questions about ${b.name} and can book your appointment.`
+    : `Our AI receptionist answers your questions about ${b.name}.`;
+}
+
 export function BusinessPage({ slug, embedded = false }: { slug: string; embedded?: boolean }) {
   const loaded = useApiResource<PublicBusiness>(`/api/public/${encodeURIComponent(slug)}`);
   const tokenSource = useMemo(() => publicCallTokenSource(slug), [slug]);
@@ -106,7 +116,7 @@ export function BusinessPage({ slug, embedded = false }: { slug: string; embedde
     <TalkbaltApp
       tokenSource={tokenSource}
       title={embedded ? b.name : 'Talk to us now'}
-      description={`Our AI receptionist answers questions about ${b.name} and can book your appointment.`}
+      description={describe(b)}
       startLabel="Start your call"
     />
   );

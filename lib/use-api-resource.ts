@@ -3,8 +3,12 @@ import { api } from '@/lib/api';
 
 type Loaded<T> = { key: string; value?: T; error?: string; status?: number };
 
-/** GETs an API path; returns null while loading. Change `reloadKey` to fetch again. */
-export function useApiResource<T>(path: string | null, reloadKey = 0) {
+/**
+ * GETs an API path; returns null while loading. Change `reloadKey` to fetch again.
+ * With `keepPrevious`, switching to a new path keeps returning the last result (marked `stale`)
+ * until the new one arrives, so numbers do not blink away when a filter changes.
+ */
+export function useApiResource<T>(path: string | null, reloadKey = 0, { keepPrevious = false } = {}) {
   const [loaded, setLoaded] = useState<Loaded<T> | null>(null);
   const key = `${path}#${reloadKey}`;
 
@@ -19,5 +23,6 @@ export function useApiResource<T>(path: string | null, reloadKey = 0) {
     };
   }, [path, key]);
 
-  return loaded?.key === key ? loaded : null;
+  if (loaded?.key === key) return { ...loaded, stale: false };
+  return keepPrevious && loaded ? { ...loaded, stale: true } : null;
 }

@@ -37,7 +37,7 @@ function CopyBox({ id, value, multiline = false }: { id: string; value: string; 
         onClick={copy}
         className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 text-sm text-foreground hover:bg-muted"
       >
-        {copied ? <Check className="size-4 text-emerald-600" aria-hidden /> : <Copy className="size-4" aria-hidden />}
+        {copied ? <Check className="size-4 text-foreground" aria-hidden /> : <Copy className="size-4" aria-hidden />}
         {copied ? 'Copied' : 'Copy'}
       </button>
     </div>

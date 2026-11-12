@@ -165,7 +165,7 @@ export function ServicesEditor() {
                   <td className="px-4 py-3 text-foreground/80 tabular-nums">{s.kind === 'service' ? `${s.duration_min} min` : '--'}</td>
                   <td className="px-4 py-3 text-foreground/80 tabular-nums">{formatPrice(s.price_cents, s.currency)}</td>
                   <td className="px-4 py-3">
-                    <span className={s.active ? 'rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700' : 'rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'}>
+                    <span className={s.active ? 'rounded-full bg-muted px-2 py-0.5 text-xs text-foreground' : 'rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground'}>
                       {s.active ? 'Visible' : 'Hidden'}
                     </span>
                   </td>

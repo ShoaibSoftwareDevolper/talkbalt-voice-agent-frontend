@@ -51,7 +51,8 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Light theme: cool near-white canvas, white cards, ink text, one indigo brand color. */
+/* Light theme: cool near-white canvas, white cards, ink text. The brand color is black (user choice,
+   2026-11-12): every bg-brand button, link and accent is black, so buttons are black everywhere. */
 :root {
   --background: oklch(0.985 0.003 255);
   --foreground: oklch(0.22 0.02 264);
@@ -59,7 +60,7 @@
   --card-foreground: oklch(0.22 0.02 264);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.22 0.02 264);
-  --primary: oklch(0.22 0.02 264);
+  --primary: oklch(0.17 0.005 264);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.96 0.005 255);
   --secondary-foreground: oklch(0.22 0.02 264);
@@ -70,10 +71,10 @@
   --destructive: oklch(0.56 0.21 27);
   --border: oklch(0.915 0.007 255);
   --input: oklch(0.915 0.007 255);
-  --ring: oklch(0.55 0.2 275);
-  --brand: oklch(0.52 0.21 275);
+  --ring: oklch(0.45 0.01 264);
+  --brand: oklch(0.17 0.005 264);
   --brand-foreground: oklch(0.99 0 0);
-  --brand-soft: oklch(0.95 0.035 275);
+  --brand-soft: oklch(0.95 0.004 264);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -87,7 +88,7 @@
   --sidebar-accent: oklch(0.96 0.005 255);
   --sidebar-accent-foreground: oklch(0.22 0.02 264);
   --sidebar-border: oklch(0.915 0.007 255);
-  --sidebar-ring: oklch(0.55 0.2 275);
+  --sidebar-ring: oklch(0.45 0.01 264);
 }
 
 @layer base {
@@ -132,11 +133,12 @@
    so every chart keeps a legend and a table view. Categorical slots are assigned in this fixed
    order, never cycled; status colors are reserved for states. */
 :root {
-  --series-1: #2a78d6;
-  --series-2: #eb6834;
-  --series-3: #1baf7a;
-  --series-4: #eda100;
-  --series-5: #e87ba4;
+  /* Monochrome series (user choice 2026-11-12: black only), darkest first. */
+  --series-1: oklch(0.2 0.005 264);
+  --series-2: oklch(0.42 0.005 264);
+  --series-3: oklch(0.58 0.005 264);
+  --series-4: oklch(0.72 0.005 264);
+  --series-5: oklch(0.84 0.005 264);
   --status-good: #0ca30c;
   --status-warning: #d99400;
   --status-serious: #e06a3c;
@@ -157,6 +159,39 @@ main:not([data-entrance]) {
     opacity: 0;
     transform: scale(0.985);
   }
+}
+
+/* Browser autofill paints saved emails and passwords on a light blue box. Keep the field's own
+   background and ink instead (the inset fill is how browsers allow overriding it; it is not a shadow). */
+input:autofill,
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground);
+  -webkit-box-shadow: 0 0 0 1000px var(--background) inset;
+  box-shadow: 0 0 0 1000px var(--background) inset;
+  caret-color: var(--foreground);
+  transition: background-color 9999s ease-out;
+}
+
+/* Dashboard: each page fades up a few pixels when you move between tabs (app/app/template.tsx). */
+.dash-page {
+  animation: dash-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes dash-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* Dashboard buttons and links: colours ease instead of snapping, and a press gives a small squeeze. */
+[data-dash] :is(a, button, select) {
+  transition-property: background-color, color, border-color, opacity, transform;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+[data-dash] :is(a, button):active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 /* Website (main[data-entrance]): pieces arrive in sequence; each sets its start with --d.
@@ -253,6 +288,9 @@ main:not([data-entrance]) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  [data-dash] :is(a, button):active:not(:disabled) {
+    transform: none;
+  }
   .menu-panel,
   .menu-item,
   .menu-line {
@@ -260,6 +298,7 @@ main:not([data-entrance]) {
     transition-delay: 0s !important;
   }
   .wave-loader-bar,
+  .dash-page,
   main,
   .enter-down,
   .enter-up,
