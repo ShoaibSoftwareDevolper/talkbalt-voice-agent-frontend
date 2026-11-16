@@ -3,6 +3,10 @@ import { CITIES } from './data/cities';
 import { COMPARE } from './data/compare';
 import { FOOD } from './data/food';
 import { GUIDES } from './data/guides';
+import { GROWTH_INTEGRATIONS } from './data/growth-integrations';
+import { GROWTH_SOCIAL } from './data/growth-social';
+import { GROWTH_CONVERSION } from './data/growth-conversion';
+import { GROWTH_OPERATIONS } from './data/growth-operations';
 import { HEALTH } from './data/health';
 import { LANGUAGES } from './data/languages';
 import { LEGACY } from './data/legacy';
@@ -39,7 +43,8 @@ function withExtra(article: Article): Article {
 
 export const ARTICLES: Article[] = [
   ...PRODUCT, ...LEGACY, ...LANGUAGES, ...SALONS, ...HEALTH, ...FOOD, ...SERVICES, ...CITIES, ...GUIDES, ...COMPARE,
-].map(withExtra);
+  ...GROWTH_INTEGRATIONS, ...GROWTH_SOCIAL, ...GROWTH_CONVERSION, ...GROWTH_OPERATIONS,
+].map(withExtra).sort((a, b) => b.date.localeCompare(a.date));
 
 const BY_SLUG = new Map(ARTICLES.map((a) => [a.slug, a]));
 if (BY_SLUG.size !== ARTICLES.length) throw new Error('Two articles share a slug');
@@ -56,12 +61,18 @@ export function articlesIn(key: CategoryKey): Article[] {
   return ARTICLES.filter((a) => a.category === key);
 }
 
-/** Other articles from the same category, then from the rest, for "Keep reading". */
+/** Curated next steps, then category matches and other articles, without duplicates. */
 export function relatedTo(article: Article, count = 3): Article[] {
   const same = articlesIn(article.category).filter((a) => a.slug !== article.slug);
   const start = Math.max(0, same.findIndex((a) => a.slug > article.slug));
   const rotated = [...same.slice(start), ...same.slice(0, start)];
-  return rotated.slice(0, count);
+  const curated = (article.relatedSlugs ?? []).map(getArticle).filter((a): a is Article => !!a);
+  const seen = new Set([article.slug]);
+  return [...curated, ...rotated, ...ARTICLES].filter((a) => {
+    if (seen.has(a.slug)) return false;
+    seen.add(a.slug);
+    return true;
+  }).slice(0, count);
 }
 
 export function readingMinutes(article: Article): number {

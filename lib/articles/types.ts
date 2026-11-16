@@ -5,6 +5,7 @@ export type Section = {
   paragraphs: string[];
   list?: string[];
   code?: string;
+  links?: { href: string; label: string }[];
 };
 
 export type Article = {
@@ -16,6 +17,7 @@ export type Article = {
   keywords: string[];
   sections: Section[];
   faqs?: { q: string; a: string }[];
+  relatedSlugs?: string[];
 };
 
 /** Writes an article section: heading, then paragraphs; a string array as the last argument becomes a list. */

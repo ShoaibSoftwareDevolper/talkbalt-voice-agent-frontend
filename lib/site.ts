@@ -1,6 +1,5 @@
-/** The public website's address, for canonical URLs, the sitemap and structured data.
- * Set NEXT_PUBLIC_SITE_URL to the real domain (for example https://talkbalt.com) before going live. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001').replace(/\/+$/, '');
+/** Public canonical domain confirmed by the owner. Override only for another public deployment. */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://talkbalt.online').replace(/\/+$/, '');
 export const SITE_NAME = 'Talkbalt';
 
 /** Where people send privacy and data requests. Set NEXT_PUBLIC_CONTACT_EMAIL before going live. */

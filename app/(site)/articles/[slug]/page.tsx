@@ -105,6 +105,17 @@ export default async function ArticlePage({ params }: PageProps<'/articles/[slug
                 <code>{section.code}</code>
               </pre>
             )}
+            {section.links && (
+              <ul className="flex flex-col gap-2 text-base text-foreground/75">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="underline underline-offset-4 hover:text-foreground">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         ))}
 
