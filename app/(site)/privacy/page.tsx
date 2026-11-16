@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { SiteMotion } from '@/components/motion/site-motion';
+import { BlogStrip } from '@/components/site/blog-strip';
 import { PageHero } from '@/components/site/site-chrome';
 import { CONTACT_EMAIL } from '@/lib/site';
 
@@ -215,6 +216,7 @@ export default function PrivacyPage() {
           </p>
         </Section>
       </article>
+      <BlogStrip />
     </>
   );
 }

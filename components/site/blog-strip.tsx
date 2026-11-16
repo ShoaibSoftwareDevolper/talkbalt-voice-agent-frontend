@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { categoryOf, getArticle } from '@/lib/articles';
-import { HideOnArticles } from './hide-on-articles';
 
 // Six cornerstone articles shown above the footer: 3 columns x 2 rows on desktop.
 const FEATURED = [
@@ -17,7 +16,6 @@ const FEATURED = [
 export function BlogStrip() {
   const articles = FEATURED.map(getArticle).filter((a) => a !== undefined);
   return (
-    <HideOnArticles>
       <section data-reveal aria-labelledby="blog-strip" className="flex w-full flex-col gap-6 px-2 sm:px-6 lg:px-12">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div className="flex flex-col gap-1">
@@ -42,6 +40,5 @@ export function BlogStrip() {
           ))}
         </ul>
       </section>
-    </HideOnArticles>
   );
 }

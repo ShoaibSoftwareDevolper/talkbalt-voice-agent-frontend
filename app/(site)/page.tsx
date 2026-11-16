@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SiteMotion } from "@/components/motion/site-motion";
+import { BlogStrip } from "@/components/site/blog-strip";
 import { at, SiteHeader } from "@/components/site/site-chrome";
 import calendar from "../Glossy Blue Glass Calendar Icon.png";
 import hands from "../features/hands.png";
@@ -270,7 +271,7 @@ export default function Home() {
                 fill
                 fetchPriority="high"
                 placeholder="blur"
-                sizes="100vw"
+                sizes="(min-width: 1024px) calc(100vw - 136px), calc(100vw - 104px)"
                 style={at(620)}
                 className="enter-zoom object-cover object-[50%_45%]"
               />
@@ -335,7 +336,7 @@ export default function Home() {
                   fill
                   fetchPriority="high"
                   placeholder="blur"
-                  sizes="100vw"
+                  sizes="(min-width: 640px) calc(100vw - 104px), calc(100vw - 48px)"
                   style={at(620)}
                   className="enter-zoom object-cover"
                 />
@@ -539,6 +540,7 @@ export default function Home() {
           })}
         </ol>
       </section>
+      <BlogStrip />
     </>
   );
 }

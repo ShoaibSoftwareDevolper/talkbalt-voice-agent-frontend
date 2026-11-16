@@ -376,7 +376,4 @@ input:-webkit-autofill:focus {
     opacity 0.35s ease calc(0.08s + var(--i) * 0.04s);
 }
 
-/* Parallax layers move on every scroll frame: keep each on its own compositor layer. */
-[data-parallax] {
-  will-change: transform;
-}
+/* SiteMotion promotes parallax layers only while their section is in view. */

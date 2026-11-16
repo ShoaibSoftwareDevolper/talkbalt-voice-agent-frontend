@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { CalendarCheck, Clock, Lock, MessageCircle } from 'lucide-react';
 import { SiteMotion } from '@/components/motion/site-motion';
+import { BlogStrip } from '@/components/site/blog-strip';
 import { PageHero } from '@/components/site/site-chrome';
 
 export const metadata: Metadata = {
@@ -58,6 +59,7 @@ export default function AboutPage() {
           ))}
         </div>
       </section>
+      <BlogStrip />
     </>
   );
 }

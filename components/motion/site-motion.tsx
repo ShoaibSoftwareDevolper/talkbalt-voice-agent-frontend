@@ -36,11 +36,57 @@ export function SiteMotion() {
       if (cancelled) return;
       gsap.registerPlugin(ScrollTrigger);
 
-      const lenis = new Lenis({ anchors: { offset: -24, duration: 1.2 }, stopInertiaOnNavigate: true });
-      const tick = (time: number) => lenis.raf(time * 1000);
+      // Next keeps visited pages in Activity with inline display:none. Their effects are stopped,
+      // but their DOM still exists. Leave those pages alone when initializing the current one.
+      // CSS-hidden responsive variants stay included so breakpoint changes keep working.
+      const pageElements = (selector: string) =>
+        gsap.utils.toArray<HTMLElement>(selector).filter((el) => {
+          for (let node: HTMLElement | null = el; node; node = node.parentElement) {
+            if (node.style.display === 'none') return false;
+          }
+          return true;
+        });
+
+      // Keep the same scroll easing, but only subscribe to frames during smooth scrolling.
+      // A permanent ticker listener prevents GSAP from sleeping, even on native-touch phones.
+      let ticking = false;
+      let firstTick = true;
+      let animationTime = 1;
+      const stopTicking = () => {
+        gsap.ticker.remove(tick);
+        ticking = false;
+      };
+      const tick = (_time: number, delta: number) => {
+        // Exclude idle/hidden time so the first wheel gesture after a pause never jumps.
+        animationTime += firstTick ? 0 : delta;
+        firstTick = false;
+        lenis.raf(animationTime);
+        if (lenis.isScrolling !== 'smooth') stopTicking();
+      };
+      const startTicking = () => {
+        // Lenis emits virtual-scroll before it starts its tween, while GSAP may tick immediately
+        // when waking. Wait until Lenis has processed the event before subscribing.
+        queueMicrotask(() => {
+          if (cancelled || ticking || document.hidden || lenis.isScrolling !== 'smooth') return;
+          firstTick = true;
+          ticking = true;
+          gsap.ticker.add(tick);
+        });
+      };
+      const lenis = new Lenis({
+        anchors: { offset: -24, duration: 1.2, onStart: startTicking },
+        stopInertiaOnNavigate: true,
+      });
+      lenis.on('virtual-scroll', ({ event }) => {
+        if (event.type === 'wheel') startTicking();
+      });
       lenis.on('scroll', ScrollTrigger.update);
-      gsap.ticker.add(tick);
       gsap.ticker.lagSmoothing(0);
+      const onVisibilityChange = () => {
+        if (document.hidden) stopTicking();
+        else if (lenis.isScrolling === 'smooth') startTicking();
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
 
       // Measure again once the entrance animation (globals.css, ~1.2s) has settled.
       const refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 1300);
@@ -55,10 +101,15 @@ export function SiteMotion() {
         const apply = () =>
           lines.forEach((el, i) => {
             const len = lengths[i];
-            el.style.strokeDasharray = `${len} ${len}`;
             el.style.strokeDashoffset = `${len * (1 - progress.p)}`;
           });
-        apply();
+        const refresh = () => {
+          lines.forEach((el, i) => {
+            el.style.strokeDasharray = `${lengths[i]} ${lengths[i]}`;
+          });
+          apply();
+        };
+        refresh();
         gsap.to(progress, {
           p: 1,
           ease: 'none',
@@ -69,7 +120,7 @@ export function SiteMotion() {
             endTrigger: anchors[anchors.length - 1],
             end: STEP_AT,
             scrub: 0.6,
-            onRefresh: apply,
+            onRefresh: refresh,
           },
         });
       };
@@ -78,28 +129,41 @@ export function SiteMotion() {
       // data-drift="N": slides sideways from N% to -N% of its width as it crosses the screen. Wide
       // screens only; matchMedia removes it the moment the screen gets narrow, and restores it.
       mm.add('(prefers-reduced-motion: no-preference) and (min-width: 768px)', () => {
-        gsap.utils.toArray<HTMLElement>('[data-drift]').forEach((el) => {
+        pageElements('[data-drift]').forEach((el) => {
           const amount = Number(el.dataset.drift) || 5;
           gsap.fromTo(el, { xPercent: amount }, { xPercent: -amount, ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });
         });
       });
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
-        gsap.utils.toArray<HTMLElement>('[data-parallax]').forEach((el) => {
+        const parallax = pageElements('[data-parallax]');
+        const previousWillChange = parallax.map((el) => el.style.willChange);
+        parallax.forEach((el) => {
           // data-parallax="N": drifts from -N% to N% of its own height while its section crosses the screen.
           const amount = Number(el.dataset.parallax) || 5;
           gsap.fromTo(
             el,
             { yPercent: -amount },
-            { yPercent: amount, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'clamp(top bottom)', end: 'clamp(bottom top)', scrub: true } },
+            {
+              yPercent: amount,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el.parentElement,
+                start: 'clamp(top bottom)',
+                end: 'clamp(bottom top)',
+                scrub: true,
+                // Release large offscreen GPU layers instead of reserving them for the whole page.
+                onToggle: ({ isActive }) => { el.style.willChange = isActive ? 'transform' : ''; },
+              },
+            },
           );
         });
 
-        gsap.utils.toArray<HTMLElement>('[data-progress]').forEach((bar) => {
+        pageElements('[data-progress]').forEach((bar) => {
           gsap.fromTo(bar, { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: true } });
         });
 
-        gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((group) => {
+        pageElements('[data-reveal]').forEach((group) => {
           gsap.from(group.children, {
             y: 28,
             opacity: 0,
@@ -110,7 +174,7 @@ export function SiteMotion() {
           });
         });
 
-        gsap.utils.toArray<HTMLElement>('[data-track]').forEach((track) => {
+        pageElements('[data-track]').forEach((track) => {
           // A step "arrives" when its anchor crosses 65% of the screen; its text rises in then.
           // clamp() keeps every trigger reachable, so the last step still arrives at the page end.
           const steps = gsap.utils.toArray<HTMLElement>(track.querySelectorAll('[data-step]'));
@@ -129,13 +193,14 @@ export function SiteMotion() {
             );
           });
         });
+        return () => parallax.forEach((el, i) => { el.style.willChange = previousWillChange[i]; });
       });
 
       // The water line (wide screens: an S-curve across the section; phones: a wavy line down the
       // left) draws itself as you scroll, reaching each step as it arrives. Each frame only sets a
       // few dash offsets, nothing runs while the page is still, and scrub: 0.6 lets it glide.
       mm.add('(prefers-reduced-motion: no-preference) and (min-width: 768px)', () => {
-        gsap.utils.toArray<HTMLElement>('[data-track]').forEach((track) => {
+        pageElements('[data-track]').forEach((track) => {
           const water = track.querySelector<SVGGElement>('[data-water]');
           const centre = water?.querySelector('path');
           if (!water || !centre) return;
@@ -147,21 +212,28 @@ export function SiteMotion() {
       mm.add('(max-width: 767px)', () => {
         const rebuilds: (() => void)[] = [];
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        gsap.utils.toArray<HTMLElement>('[data-track]').forEach((track) => {
+        pageElements('[data-track]').forEach((track) => {
           const svg = track.querySelector<SVGSVGElement>('[data-mobile-pipe]');
           const water = track.querySelector<SVGGElement>('[data-mobile-water]');
           const ripples = gsap.utils.toArray<SVGPathElement>(track.querySelectorAll('[data-mobile-ripple]'));
           if (!svg || !water) return;
           const lengths: number[] = [];
+          const dots = gsap.utils.toArray<HTMLElement>(track.querySelectorAll('[data-step-dot]'));
+          let geometry = '';
           // Rebuilt whenever the layout changes (ScrollTrigger refresh): an S-bend between each pair of
           // step anchors, plus two ripple lines riding it as fixed sine waves.
           const build = () => {
             const box = track.getBoundingClientRect();
-            svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-            const pts = gsap.utils.toArray<HTMLElement>(track.querySelectorAll('[data-step-dot]')).map((dot) => {
+            const pts = dots.map((dot) => {
               const r = dot.getBoundingClientRect();
               return [r.left + r.width / 2 - box.left, r.top + r.height / 2 - box.top];
             });
+            // Read layout together before any SVG writes. Browser toolbar/scroll refreshes often
+            // leave the track unchanged; avoid repeating 540 getPointAtLength calls in that case.
+            const nextGeometry = [box.width, box.height, ...pts.flat()].map((n) => n.toFixed(2)).join(',');
+            if (nextGeometry === geometry) return;
+            geometry = nextGeometry;
+            svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
             const d = pts
               .map(([x, y], i) => {
                 if (!i) return `M${x} ${y}`;
@@ -197,18 +269,18 @@ export function SiteMotion() {
             lengths.splice(0, lengths.length, length, ...ripples.map((r) => r.getTotalLength()));
           };
           build();
-          if (reduce) return;
           ScrollTrigger.addEventListener('refreshInit', build);
           rebuilds.push(build);
-          drawOnScroll(track, [water, ...ripples], lengths);
+          if (!reduce) drawOnScroll(track, [water, ...ripples], lengths);
         });
         return () => rebuilds.splice(0).forEach((build) => ScrollTrigger.removeEventListener('refreshInit', build));
       });
 
       cleanup = () => {
         clearTimeout(refreshTimer);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
         mm.revert();
-        gsap.ticker.remove(tick);
+        stopTicking();
         gsap.ticker.lagSmoothing(500, 33);
         lenis.destroy();
       };
